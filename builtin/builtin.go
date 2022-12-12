@@ -28,45 +28,50 @@ import (
 var (
 	// Predicates built-in predicates.
 	Predicates = map[ast.PredicateSym]struct{}{
-		symbols.Lt:             struct{}{},
-		symbols.Le:             struct{}{},
-		symbols.WithinDistance: struct{}{},
-		symbols.MatchPair:      struct{}{},
-		symbols.MatchCons:      struct{}{},
-		symbols.MatchNil:       struct{}{},
+		symbols.Lt:             {},
+		symbols.Le:             {},
+		symbols.WithinDistance: {},
+		symbols.MatchPair:      {},
+		symbols.MatchCons:      {},
+		symbols.MatchNil:       {},
+		symbols.MatchField:     {},
+		symbols.MatchEntry:     {},
 	}
 
 	// Functions has all built-in functions except reducers.
 	Functions = map[ast.FunctionSym]struct{}{
-		symbols.Div:   struct{}{},
-		symbols.Mult:  struct{}{},
-		symbols.Plus:  struct{}{},
-		symbols.Minus: struct{}{},
+		symbols.Div:   {},
+		symbols.Mult:  {},
+		symbols.Plus:  {},
+		symbols.Minus: {},
 
 		// This is only used to start a "do-transform".
-		symbols.GroupBy: struct{}{},
+		symbols.GroupBy: {},
 
-		symbols.ListGet: struct{}{},
-		symbols.Append:  struct{}{},
-		symbols.Cons:    struct{}{},
-		symbols.Len:     struct{}{},
-		symbols.List:    struct{}{},
-		symbols.Pair:    struct{}{},
-		symbols.Tuple:   struct{}{},
+		symbols.ListGet: {},
+		symbols.Append:  {},
+		symbols.Cons:    {},
+		symbols.Len:     {},
+		symbols.List:    {},
+		symbols.Pair:    {},
+		symbols.Tuple:   {},
 	}
 
 	// ReducerFunctions has those built-in functions with are reducers.
 	ReducerFunctions = map[ast.FunctionSym]struct{}{
-		symbols.Collect:         struct{}{},
-		symbols.CollectDistinct: struct{}{},
-		symbols.PickAny:         struct{}{},
-		symbols.Max:             struct{}{},
-		symbols.Sum:             struct{}{},
-		symbols.Count:           struct{}{},
+		symbols.Collect:         {},
+		symbols.CollectDistinct: {},
+		symbols.PickAny:         {},
+		symbols.Max:             {},
+		symbols.Sum:             {},
+		symbols.Count:           {},
 	}
 
 	// ErrDivisionByZero indicates a division by zero runtime error.
 	ErrDivisionByZero = errors.New("div by zero")
+
+	// errFound is used for exiting a loop
+	errFound = errors.New("found")
 )
 
 func init() {
@@ -105,6 +110,10 @@ func Decide(atom ast.Atom, subst *unionfind.UnionFind) (bool, *unionfind.UnionFi
 		fallthrough
 	case symbols.MatchCons.Symbol:
 		fallthrough
+	case symbols.MatchEntry.Symbol:
+		fallthrough
+	case symbols.MatchField.Symbol:
+		fallthrough
 	case symbols.MatchNil.Symbol:
 		return match(atom, subst)
 	}
@@ -141,45 +150,45 @@ func Decide(atom ast.Atom, subst *unionfind.UnionFind) (bool, *unionfind.UnionFi
 	}
 }
 
-func match(atom ast.Atom, subst *unionfind.UnionFind) (bool, *unionfind.UnionFind, error) {
-	evaluatedArg, err := EvalExpr(atom.Args[0], subst)
+func match(pattern ast.Atom, subst *unionfind.UnionFind) (bool, *unionfind.UnionFind, error) {
+	evaluatedArg, err := EvalExpr(pattern.Args[0], subst)
 	if err != nil {
 		return false, nil, err
 	}
 	scrutinee, ok := evaluatedArg.(ast.Constant)
 	if !ok {
-		return false, nil, fmt.Errorf("Not a constant: %v %T", scrutinee, scrutinee)
+		return false, nil, fmt.Errorf("not a constant: %v %T", evaluatedArg, evaluatedArg)
 	}
-	switch atom.Predicate.Symbol {
+	switch pattern.Predicate.Symbol {
 	case symbols.MatchPair.Symbol:
-		if len(atom.Args) != 3 {
-			return false, nil, fmt.Errorf("wrong number of arguments for built-in predicate ':match_pair': %v", atom.Args)
+		if len(pattern.Args) != 3 {
+			return false, nil, fmt.Errorf("wrong number of arguments for built-in predicate ':match_pair': %v", pattern.Args)
 		}
-		leftVar, leftOK := atom.Args[1].(ast.Variable)
-		rightVar, rightOk := atom.Args[2].(ast.Variable)
+		leftVar, leftOK := pattern.Args[1].(ast.Variable)
+		rightVar, rightOk := pattern.Args[2].(ast.Variable)
 		if !leftOK || !rightOk {
-			return false, nil, fmt.Errorf("2nd and 3rd arguments must be variables for ':match_pair': %v", atom)
+			return false, nil, fmt.Errorf("2nd and 3rd arguments must be variables for ':match_pair': %v", pattern)
 		}
 
 		fst, snd, err := scrutinee.PairValue()
 		if err != nil {
-			return false, nil, err
+			return false, nil, nil // failing match is not an error
 		}
 		// First argument is indeed a pair. Bind.
 		nsubst, err := unionfind.UnifyTermsExtend([]ast.BaseTerm{leftVar, rightVar}, []ast.BaseTerm{fst, snd}, *subst)
 		if err != nil {
-			return false, nil, fmt.Errorf("This should never happen for %v", atom)
+			return false, nil, fmt.Errorf("This should never happen for %v", pattern)
 		}
 		return true, &nsubst, nil
 
 	case symbols.MatchCons.Symbol:
-		if len(atom.Args) != 3 {
-			return false, nil, fmt.Errorf("wrong number of arguments for built-in predicate ':match_cons': %v", atom.Args)
+		if len(pattern.Args) != 3 {
+			return false, nil, fmt.Errorf("wrong number of arguments for built-in predicate ':match_cons': %v", pattern.Args)
 		}
-		leftVar, leftOK := atom.Args[1].(ast.Variable)
-		rightVar, rightOk := atom.Args[2].(ast.Variable)
+		leftVar, leftOK := pattern.Args[1].(ast.Variable)
+		rightVar, rightOk := pattern.Args[2].(ast.Variable)
 		if !leftOK || !rightOk {
-			return false, nil, fmt.Errorf("2nd and 3rd arguments must be variables for ':match_cons': %v", atom)
+			return false, nil, fmt.Errorf("2nd and 3rd arguments must be variables for ':match_cons': %v", pattern)
 		}
 
 		scrutineeList, err := getListValue(scrutinee)
@@ -188,26 +197,81 @@ func match(atom ast.Atom, subst *unionfind.UnionFind) (bool, *unionfind.UnionFin
 		}
 		hd, tail, err := scrutineeList.ConsValue()
 		if err != nil {
-			return false, nil, err
+			return false, nil, nil // failing match is not an error
 		}
 		// First argument is indeed a cons. Bind.
 		nsubst, err := unionfind.UnifyTermsExtend([]ast.BaseTerm{leftVar, rightVar}, []ast.BaseTerm{hd, tail}, *subst)
 		if err != nil {
-			return false, nil, fmt.Errorf("This should never happen for %v", atom)
+			return false, nil, fmt.Errorf("This should never happen for %v", pattern)
 		}
 		return true, &nsubst, nil
 
 	case symbols.MatchNil.Symbol:
-		if len(atom.Args) != 1 {
-			return false, nil, fmt.Errorf("wrong number of arguments for built-in predicate ':match_nil': %v", atom.Args)
+		if len(pattern.Args) != 1 {
+			return false, nil, fmt.Errorf("wrong number of arguments for built-in predicate ':match_nil': %v", pattern.Args)
 		}
 		if !scrutinee.IsListNil() {
 			return false, nil, nil
 		}
 		return true, subst, nil
 
+	case symbols.MatchEntry.Symbol:
+		if scrutinee.Type != ast.MapShape || scrutinee.IsMapNil() {
+			return false, nil, nil
+		}
+		patternKey, ok := pattern.Args[1].(ast.Constant)
+		if !ok {
+			return false, nil, fmt.Errorf("bad pattern %v", pattern) // This should not happen
+		}
+		patternVal := pattern.Args[2]
+		var found *ast.Constant
+		e, err := scrutinee.MapValues(func(key ast.Constant, val ast.Constant) error {
+			if key.Equals(patternKey) {
+				found = &val
+				return errFound
+			}
+			return nil
+		}, func() error { return nil })
+		if e != nil {
+			return false, nil, e // This should not happen
+		}
+		if errors.Is(err, errFound) {
+			if nsubst, errUnify := unionfind.UnifyTermsExtend([]ast.BaseTerm{patternVal}, []ast.BaseTerm{*found}, *subst); errUnify == nil { // if NO error
+				return true, &nsubst, nil
+			}
+		}
+		return false, nil, nil
+
+	case symbols.MatchField.Symbol:
+		if scrutinee.Type != ast.StructShape || scrutinee.IsStructNil() {
+			return false, nil, nil
+		}
+		patternKey, ok := pattern.Args[1].(ast.Constant)
+		if !ok {
+			return false, nil, fmt.Errorf("bad pattern %v", pattern) // This should not happen
+		}
+		patternVal := pattern.Args[2]
+		var found *ast.Constant
+		e, err := scrutinee.StructValues(func(key ast.Constant, val ast.Constant) error {
+			if key.Equals(patternKey) {
+				found = &val
+				return errFound
+			}
+			return nil
+		}, func() error { return nil })
+		if e != nil {
+			return false, nil, nil // This should not happen
+		}
+
+		if errors.Is(err, errFound) {
+			if nsubst, errUnify := unionfind.UnifyTermsExtend([]ast.BaseTerm{patternVal}, []ast.BaseTerm{*found}, *subst); errUnify == nil { // if NO error
+				return true, &nsubst, nil
+			}
+		}
+		return false, nil, nil
+
 	default:
-		return false, nil, fmt.Errorf("unexpected case: %v", atom.Predicate.Symbol)
+		return false, nil, fmt.Errorf("unexpected case: %v", pattern.Predicate.Symbol)
 	}
 }
 
@@ -266,6 +330,26 @@ func EvalApplyFn(applyFn ast.ApplyFn, subst ast.Subst) (ast.Constant, error) {
 		}
 		return *list, nil
 
+	case symbols.Map.Symbol:
+		kvMap := make(map[*ast.Constant]*ast.Constant)
+		for i := 0; i < len(evaluatedArgs); i++ {
+			label := &evaluatedArgs[i]
+			i++
+			value := &evaluatedArgs[i]
+			kvMap[label] = value
+		}
+		return *ast.Map(kvMap), nil
+
+	case symbols.Struct.Symbol:
+		kvMap := make(map[*ast.Constant]*ast.Constant)
+		for i := 0; i < len(evaluatedArgs); i++ {
+			label := &evaluatedArgs[i]
+			i++
+			value := &evaluatedArgs[i]
+			kvMap[label] = value
+		}
+		return *ast.Struct(kvMap), nil
+
 	case symbols.Tuple.Symbol:
 		if len(evaluatedArgs) == 1 {
 			return evaluatedArgs[0], nil
@@ -294,22 +378,63 @@ func EvalApplyFn(applyFn ast.ApplyFn, subst ast.Subst) (ast.Constant, error) {
 			return ast.Constant{}, err
 		}
 		i := 0
-		var errBreak = errors.New("break")
 		var res *ast.Constant
 		_, loopErr := arg.ListValues(func(c ast.Constant) error {
 			if i == int(index) {
 				res = &c
-				return errBreak
+				return errFound
 			}
 			i++
 			return nil
 		}, func() error {
 			return nil
 		})
-		if errors.Is(loopErr, errBreak) {
+		if errors.Is(loopErr, errFound) {
 			return *res, nil
 		}
 		return ast.Constant{}, fmt.Errorf("index out of bounds: %d", index)
+
+	case symbols.MapGet.Symbol:
+		arg, err := getMapValue(evaluatedArgs[0])
+		if err != nil {
+			return ast.Constant{}, err
+		}
+		lookupKey := evaluatedArgs[1]
+		var res *ast.Constant
+		_, loopErr := arg.MapValues(func(key ast.Constant, val ast.Constant) error {
+			if key.Equals(lookupKey) {
+				res = &val
+				return errFound
+			}
+			return nil
+		}, func() error {
+			return nil
+		})
+		if errors.Is(loopErr, errFound) {
+			return *res, nil
+		}
+		return ast.Constant{}, fmt.Errorf("key does not exist: %v", lookupKey)
+
+	case symbols.StructGet.Symbol:
+		arg, err := getStructValue(evaluatedArgs[0])
+		if err != nil {
+			return ast.Constant{}, err
+		}
+		lookupField := evaluatedArgs[1]
+		var res *ast.Constant
+		_, loopErr := arg.StructValues(func(field ast.Constant, val ast.Constant) error {
+			if field.Equals(lookupField) {
+				res = &val
+				return errFound
+			}
+			return nil
+		}, func() error {
+			return nil
+		})
+		if errors.Is(loopErr, errFound) {
+			return *res, nil
+		}
+		return ast.Constant{}, fmt.Errorf("key does not exist: %v", lookupField)
 
 	default:
 		return EvalNumericApplyFn(applyFn, subst)
@@ -366,6 +491,20 @@ func getNumberValue(b ast.BaseTerm) (int64, error) {
 func getListValue(c ast.Constant) (ast.Constant, error) {
 	if c.Type != ast.ListShape {
 		return ast.Constant{}, fmt.Errorf("value %v (%v) is not a list", c, c.Type)
+	}
+	return c, nil
+}
+
+func getMapValue(c ast.Constant) (ast.Constant, error) {
+	if c.Type != ast.MapShape {
+		return ast.Constant{}, fmt.Errorf("value %v (%v) is not a map", c, c.Type)
+	}
+	return c, nil
+}
+
+func getStructValue(c ast.Constant) (ast.Constant, error) {
+	if c.Type != ast.StructShape {
+		return ast.Constant{}, fmt.Errorf("value %v (%v) is not a struct", c, c.Type)
 	}
 	return c, nil
 }

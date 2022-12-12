@@ -244,7 +244,11 @@ func (a *Analyzer) Analyze(program []ast.Clause) (*ProgramInfo, error) {
 		}
 		// Is it an extensional or intensional predicate?
 		if clause.Premises == nil {
-			initialFacts = append(initialFacts, clause.Head)
+			head, err := builtin.EvalAtom(clause.Head, ast.ConstSubstList{})
+			if err != nil {
+				return nil, err
+			}
+			initialFacts = append(initialFacts, head)
 			edbSymbols[clause.Head.Predicate] = struct{}{}
 		} else {
 			rules = append(rules, clause)
@@ -253,7 +257,9 @@ func (a *Analyzer) Analyze(program []ast.Clause) (*ProgramInfo, error) {
 			for _, premise := range clause.Premises {
 				switch p := premise.(type) {
 				case ast.Atom:
-					edbSymbols[p.Predicate] = struct{}{}
+					if !p.Predicate.IsBuiltin() {
+						edbSymbols[p.Predicate] = struct{}{}
+					}
 				case ast.NegAtom:
 					edbSymbols[p.Atom.Predicate] = struct{}{}
 				}
@@ -391,15 +397,42 @@ func (a *Analyzer) CheckRule(clause ast.Clause) error {
 				// where we are sure that variables have been assigned values.
 				var builtinVars = make(map[ast.Variable]bool)
 				ast.AddVars(p, builtinVars)
-				if p.Predicate == symbols.MatchPair || p.Predicate == symbols.MatchCons { // "matching predicate"
-					fstVar, fstOk := p.Args[1].(ast.Variable)
-					sndVar, sndOk := p.Args[2].(ast.Variable)
-					if !fstOk || !sndOk {
-						return fmt.Errorf("expected variables as arguments to %v", p)
+				if p.Predicate == symbols.MatchPair || p.Predicate == symbols.MatchCons {
+					if fstVar, fstOk := p.Args[1].(ast.Variable); fstOk {
+						boundVars[fstVar] = true
+
+						if scrutinee, ok := p.Args[0].(ast.Variable); ok && scrutinee == fstVar {
+							return fmt.Errorf("a variable that is matched cannot be used for binding %v", p)
+						}
+					} else if _, constOk := p.Args[1].(ast.Constant); !constOk {
+						return fmt.Errorf("expected variable or constant as second argument to %v", p)
 					}
-					boundVars[fstVar] = true
-					boundVars[sndVar] = true
+
+					if sndVar, sndOk := p.Args[2].(ast.Variable); sndOk {
+						boundVars[sndVar] = true
+
+						if scrutinee, ok := p.Args[0].(ast.Variable); ok && scrutinee == sndVar {
+							return fmt.Errorf("a variable that is matched cannot be used for binding %v", p)
+						}
+					} else if _, constOk := p.Args[2].(ast.Constant); !constOk {
+						return fmt.Errorf("expected variable or constant as second argument to %v", p)
+					}
 				}
+				if p.Predicate == symbols.MatchEntry || p.Predicate == symbols.MatchField {
+					if _, keyOk := p.Args[1].(ast.Constant); !keyOk {
+						return fmt.Errorf("expected constant as second argument to %v", p)
+					}
+					if valVar, valOk := p.Args[2].(ast.Variable); valOk {
+						boundVars[valVar] = true
+
+						if scrutinee, ok := p.Args[0].(ast.Variable); ok && scrutinee == valVar {
+							return fmt.Errorf("a variable that is matched cannot be used for binding %v", p)
+						}
+					} else if _, constOk := p.Args[2].(ast.Constant); !constOk {
+						return fmt.Errorf("expected variable or constant as third argument to %v", p)
+					}
+				}
+
 				for v := range builtinVars {
 					if !boundVars[v] {
 						return fmt.Errorf("variable %v in %v will not have a value yet; move the subgoal to the right", v, p)

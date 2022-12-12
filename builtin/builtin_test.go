@@ -24,6 +24,26 @@ import (
 	"github.com/google/mangle/unionfind"
 )
 
+func name(n string) ast.Constant {
+	c, err := ast.Name(n)
+	if err != nil {
+		panic(err)
+	}
+	return c
+}
+
+func evalExpr(e ast.BaseTerm) ast.Constant {
+	c, err := EvalExpr(e, nil)
+	if err != nil {
+		panic(err)
+	}
+	constant, ok := c.(ast.Constant)
+	if !ok {
+		panic(fmt.Errorf("not a constant %v", c))
+	}
+	return constant
+}
+
 func extend(u unionfind.UnionFind, left ast.BaseTerm, right ast.BaseTerm) unionfind.UnionFind {
 	subst, err := unionfind.UnifyTermsExtend([]ast.BaseTerm{left}, []ast.BaseTerm{right}, u)
 	if err != nil {
@@ -197,6 +217,74 @@ func TestMatchCons(t *testing.T) {
 	}
 }
 
+func TestMatchEntry(t *testing.T) {
+	tests := []struct {
+		scrutinee ast.BaseTerm
+		keyPat    ast.BaseTerm
+		valPat    ast.BaseTerm
+		want      bool
+		subst     unionfind.UnionFind
+	}{
+		{evalExpr(ast.ApplyFn{symbols.Map, []ast.BaseTerm{
+			ast.Number(3), ast.String("three"),
+			ast.Number(4), ast.String("four"),
+		}}), ast.Number(3), ast.Variable{"_"}, true, unionfind.New()},
+		{evalExpr(ast.ApplyFn{symbols.Map, []ast.BaseTerm{
+			ast.Number(3), ast.String("three"),
+			ast.Number(4), ast.String("four"),
+		}}), ast.Number(3), ast.Variable{"X"}, true, extend(unionfind.New(), ast.Variable{"X"}, ast.String("three"))},
+	}
+	for _, test := range tests {
+		atom := ast.NewAtom(":match_entry", test.scrutinee, test.keyPat, test.valPat)
+		got, _, err := Decide(atom, &test.subst)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if got != test.want {
+			t.Errorf("match_entry: for atom %v expected %v got %v.", atom, test.want, got)
+		}
+	}
+}
+
+func TestMatchField(t *testing.T) {
+	tests := []struct {
+		scrutinee ast.BaseTerm
+		keyPat    ast.BaseTerm
+		valPat    ast.BaseTerm
+		want      bool
+		subst     unionfind.UnionFind
+	}{
+		{evalExpr(ast.ApplyFn{symbols.Struct, []ast.BaseTerm{
+			name("/foo"), ast.Number(3), name("/bar"), ast.String("three"),
+		}}), name("/foo"), ast.Variable{"_"}, true, unionfind.New()},
+		{evalExpr(ast.ApplyFn{symbols.Struct, []ast.BaseTerm{
+			name("/foo"), ast.Number(3), name("/bar"), ast.String("three"),
+		}}), name("/bar"), ast.Variable{"X"}, true, extend(unionfind.New(), ast.Variable{"X"}, ast.String("three"))},
+	}
+	for _, test := range tests {
+		atom := ast.NewAtom(":match_field", test.scrutinee, test.keyPat, test.valPat)
+		got, _, err := Decide(atom, &test.subst)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if got != test.want {
+			t.Errorf("match_field: for atom %v expected %v got %v.", atom, test.want, got)
+		}
+	}
+}
+
+func TestMatchConsNegative(t *testing.T) {
+	var subst unionfind.UnionFind
+	atom := ast.NewAtom(":match_cons", ast.ListNil, ast.Variable{"X"}, ast.Variable{"Y"})
+	got, nsubst, err := Decide(atom, &subst)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got != false || nsubst != nil {
+		t.Errorf("TestMatchConsNegative: expected false, nil got %v %v", got, nsubst)
+	}
+}
+
 func makeVarList(n int) []ast.Variable {
 	var vars []ast.Variable
 	for i := 0; i < n; i++ {
@@ -230,9 +318,9 @@ func TestReducerCollect(t *testing.T) {
 	}{
 		{
 			rows: [][]ast.Constant{
-				[]ast.Constant{ast.Number(1)},
-				[]ast.Constant{ast.Number(1)},
-				[]ast.Constant{ast.Number(3)},
+				{ast.Number(1)},
+				{ast.Number(1)},
+				{ast.Number(3)},
 			},
 			want: ast.List([]ast.Constant{
 				ast.Number(1),
@@ -242,9 +330,9 @@ func TestReducerCollect(t *testing.T) {
 		},
 		{
 			rows: [][]ast.Constant{
-				[]ast.Constant{ast.Number(1), ast.Number(2)},
-				[]ast.Constant{ast.Number(1), ast.Number(2)},
-				[]ast.Constant{ast.Number(3), ast.Number(4)},
+				{ast.Number(1), ast.Number(2)},
+				{ast.Number(1), ast.Number(2)},
+				{ast.Number(3), ast.Number(4)},
 			},
 			want: ast.List([]ast.Constant{
 				*pair(ast.Number(1), ast.Number(2)),
@@ -254,8 +342,8 @@ func TestReducerCollect(t *testing.T) {
 		},
 		{
 			rows: [][]ast.Constant{
-				[]ast.Constant{ast.Number(1), ast.Number(2), ast.Number(7)},
-				[]ast.Constant{ast.Number(3), ast.Number(4), ast.Number(7)},
+				{ast.Number(1), ast.Number(2), ast.Number(7)},
+				{ast.Number(3), ast.Number(4), ast.Number(7)},
 			},
 			want: ast.List([]ast.Constant{
 				*pair(ast.Number(1), *pair(ast.Number(2), ast.Number(7))),
@@ -287,9 +375,9 @@ func TestReducerCollectDistinct(t *testing.T) {
 	}{
 		{
 			rows: [][]ast.Constant{
-				[]ast.Constant{ast.Number(1)},
-				[]ast.Constant{ast.Number(1)},
-				[]ast.Constant{ast.Number(3)},
+				{ast.Number(1)},
+				{ast.Number(1)},
+				{ast.Number(3)},
 			},
 			want: ast.List([]ast.Constant{
 				ast.Number(1),
@@ -298,9 +386,9 @@ func TestReducerCollectDistinct(t *testing.T) {
 		},
 		{
 			rows: [][]ast.Constant{
-				[]ast.Constant{ast.Number(1), ast.Number(2)},
-				[]ast.Constant{ast.Number(1), ast.Number(2)},
-				[]ast.Constant{ast.Number(3), ast.Number(4)},
+				{ast.Number(1), ast.Number(2)},
+				{ast.Number(1), ast.Number(2)},
+				{ast.Number(3), ast.Number(4)},
 			},
 			want: ast.List([]ast.Constant{
 				*pair(ast.Number(1), ast.Number(2)),
@@ -309,8 +397,8 @@ func TestReducerCollectDistinct(t *testing.T) {
 		},
 		{
 			rows: [][]ast.Constant{
-				[]ast.Constant{ast.Number(1), ast.Number(2), ast.Number(7)},
-				[]ast.Constant{ast.Number(3), ast.Number(4), ast.Number(7)},
+				{ast.Number(1), ast.Number(2), ast.Number(7)},
+				{ast.Number(3), ast.Number(4), ast.Number(7)},
 			},
 			want: ast.List([]ast.Constant{
 				*pair(ast.Number(1), *pair(ast.Number(2), ast.Number(7))),
@@ -403,6 +491,44 @@ func TestEvalApplyFn(t *testing.T) {
 			expr: ast.ApplyFn{symbols.Len, []ast.BaseTerm{ast.ListCons(ptr(ast.String("hello")), &ast.ListNil)}},
 			want: ast.Number(1),
 		},
+		{
+			name: "construct a map",
+			expr: ast.ApplyFn{symbols.Map, []ast.BaseTerm{ast.Number(1), ast.String("v"), ast.Number(2), ast.String("foo")}},
+			want: *ast.Map(map[*ast.Constant]*ast.Constant{ptr(ast.Number(1)): ptr(ast.String("v")), ptr(ast.Number(2)): ptr(ast.String("foo"))}),
+		},
+		{
+			name: "lookup map",
+			expr: ast.ApplyFn{symbols.MapGet, []ast.BaseTerm{
+				ast.ApplyFn{symbols.Map, []ast.BaseTerm{ast.Number(1), ast.String("v"), ast.Number(2), ast.String("foo")}},
+				ast.Number(1)}},
+			want: ast.String("v"),
+		},
+		{
+			name: "lookup map 2",
+			expr: ast.ApplyFn{symbols.MapGet, []ast.BaseTerm{
+				ast.ApplyFn{symbols.Map, []ast.BaseTerm{ast.Number(1), ast.String("v"), ast.Number(2), ast.String("foo")}},
+				ast.Number(2)}},
+			want: ast.String("foo"),
+		},
+		{
+			name: "construct a struct",
+			expr: ast.ApplyFn{symbols.Struct, []ast.BaseTerm{name("/field1"), ast.String("value"), name("/field2"), ast.Number(32)}},
+			want: *ast.Struct(map[*ast.Constant]*ast.Constant{ptr(name("/field1")): ptr(ast.String("value")), ptr(name("/field2")): ptr(ast.Number(32))}),
+		},
+		{
+			name: "field access",
+			expr: ast.ApplyFn{symbols.StructGet, []ast.BaseTerm{
+				ast.ApplyFn{symbols.Struct, []ast.BaseTerm{name("/field1"), ast.String("value"), name("/field2"), ast.Number(32)}},
+				name("/field1")}},
+			want: ast.String("value"),
+		},
+		{
+			name: "field access 2",
+			expr: ast.ApplyFn{symbols.StructGet, []ast.BaseTerm{
+				ast.ApplyFn{symbols.Struct, []ast.BaseTerm{name("/field1"), ast.String("value"), name("/field2"), ast.Number(32)}},
+				name("/field2")}},
+			want: ast.Number(32),
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -437,6 +563,18 @@ func TestEvalApplyFnNegative(t *testing.T) {
 		{
 			name: "out of bounds",
 			expr: ast.ApplyFn{symbols.ListGet, []ast.BaseTerm{ast.ListNil, ast.Number(1)}},
+		},
+		{
+			name: "lookup map not found",
+			expr: ast.ApplyFn{symbols.MapGet, []ast.BaseTerm{
+				ast.ApplyFn{symbols.Map, []ast.BaseTerm{ast.Number(1), ast.String("v"), ast.Number(2), ast.String("foo")}},
+				ast.Number(3)}},
+		},
+		{
+			name: "lookup struct not found",
+			expr: ast.ApplyFn{symbols.StructGet, []ast.BaseTerm{
+				ast.ApplyFn{symbols.Struct, []ast.BaseTerm{name("/field1"), ast.String("value"), name("/field2"), ast.Number(32)}},
+				name("/field3")}},
 		},
 	}
 	for _, test := range tests {
@@ -479,5 +617,108 @@ func TestTypeCheck(t *testing.T) {
 	badFact := atom("foo('aaa', 12, /bar)")
 	if err := checker.CheckTypeBounds(badFact); err == nil { // if NO error
 		t.Errorf("CheckTypeBounds(%v) succeeded expected error", badFact)
+	}
+}
+
+func TestCheckTypeExpressionStructured(t *testing.T) {
+	tests := []struct {
+		tpe  ast.BaseTerm
+		good []ast.Constant
+		bad  []ast.Constant
+	}{
+		{
+			tpe: ast.ApplyFn{symbols.MapType, []ast.BaseTerm{
+				ast.NumberBound,
+				ast.StringBound,
+			}},
+			good: []ast.Constant{
+				evalExpr(ast.ApplyFn{symbols.Map, []ast.BaseTerm{
+					ast.Number(3), ast.String("three"),
+					ast.Number(4), ast.String("four"),
+				}}),
+			},
+			bad: []ast.Constant{
+				evalExpr(ast.ApplyFn{symbols.Map, []ast.BaseTerm{
+					ast.String("three"), ast.Number(3),
+					ast.String("four"), ast.Number(4),
+				}}),
+			},
+		},
+		{
+			tpe: ast.ApplyFn{symbols.StructType, []ast.BaseTerm{
+				name("/foo"),
+				ast.NumberBound,
+				name("/bar"),
+				ast.StringBound,
+				name("/baz"),
+				ast.ApplyFn{symbols.ListType, []ast.BaseTerm{ast.NumberBound}},
+			}},
+			good: []ast.Constant{
+				evalExpr(ast.ApplyFn{symbols.Struct, []ast.BaseTerm{
+					name("/foo"), ast.Number(3),
+					name("/bar"), ast.String("three"),
+					name("/baz"), ast.ApplyFn{symbols.List, []ast.BaseTerm{
+						ast.Number(23),
+					}}}}),
+			},
+			bad: []ast.Constant{
+				evalExpr(ast.ApplyFn{symbols.Struct, []ast.BaseTerm{
+					name("/foo"), ast.Number(3),
+				}}),
+			},
+		},
+	}
+	for _, test := range tests {
+		h, err := symbols.NewTypeHandle(test.tpe)
+		if err != nil {
+			t.Errorf("NewTypeHandle(%v) failed %v", test.tpe, err)
+		}
+		for _, c := range test.good {
+			if !h.HasType(c) {
+				t.Errorf("NewTypeHandle(%v).HasType(%v)=false want true", test.tpe, c)
+			}
+		}
+		for _, c := range test.bad {
+			if h.HasType(c) {
+				t.Errorf("NewTypeHandle(%v).HasType(%v)=true want false", test.tpe, c)
+			}
+		}
+	}
+}
+
+func evAtom(s string) ast.Atom {
+	term, err := parse.Term(s)
+	if err != nil {
+		panic(err)
+	}
+	eval, err := EvalAtom(term.(ast.Atom), nil)
+	if err != nil {
+		panic(err)
+	}
+	return eval
+}
+
+func TestRoundTrip(t *testing.T) {
+	tests := []ast.Atom{
+		evAtom("bar(/abc, 1, 'def')"),
+		evAtom("bar([/abc],1,/def)"),
+		evAtom("bar([/abc, /def], 1, /def)"),
+		evAtom("baz([/abc : 1,  /def : 2], 1, /def)"),
+		evAtom("baz({/abc : 1,  /def : 2}, 1, /def)"),
+	}
+	for _, test := range tests {
+		atom, err := parse.Atom(test.String())
+		if err != nil {
+			t.Fatal(err)
+		}
+		atom, err = EvalAtom(atom, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if !atom.Equals(test) {
+			t.Errorf("(%v).Equals(%v) = false expected true", atom, test)
+
+		}
 	}
 }

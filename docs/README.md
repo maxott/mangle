@@ -24,11 +24,14 @@ rigorous as to become inaccessible.
 
 ## Language
 
-- [rationale.md] Rationale
-- (specification - TODO)
+- [Rationale](rationale.md)
+- [Data Model](spec_datamodel.md)
+- [Built-in Operations](spec_builtin_operations.md)
 
 ## Implementation
 
 ### Understanding
 
-- [using_the_interpreter.md]Using the interactive interpreter
+- [Example: Volunteer DB](example_volunteer_db.md)
+- [Understanding Derivation of Facts](explanation_derived_facts.md)
+- [Using the interactive interpreter](using_the_interpreter.md)

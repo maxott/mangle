@@ -164,10 +164,10 @@ func TestAnalyzePositive(t *testing.T) {
 			},
 			want: ProgramInfo{
 				IdbPredicates: map[ast.PredicateSym]struct{}{
-					ast.PredicateSym{"sna", 1}: struct{}{},
+					ast.PredicateSym{"sna", 1}: {},
 				},
 				EdbPredicates: map[ast.PredicateSym]struct{}{
-					ast.PredicateSym{"foo", 1}: struct{}{},
+					ast.PredicateSym{"foo", 1}: {},
 				},
 				InitialFacts: []ast.Atom{atom("foo(/bar)")},
 				Rules:        []ast.Clause{clause("sna(X) :- foo(X).")},
@@ -202,10 +202,10 @@ func TestAnalyzePositive(t *testing.T) {
 			},
 			want: ProgramInfo{
 				IdbPredicates: map[ast.PredicateSym]struct{}{
-					ast.PredicateSym{"foo.bar", 1}: struct{}{},
+					ast.PredicateSym{"foo.bar", 1}: {},
 				},
 				EdbPredicates: map[ast.PredicateSym]struct{}{
-					ast.PredicateSym{"foo.baz", 1}: struct{}{},
+					ast.PredicateSym{"foo.baz", 1}: {},
 				},
 				InitialFacts: []ast.Atom{atom("foo.baz(1)")},
 				Rules:        []ast.Clause{clause("foo.bar(X) :- foo.baz(X).")},
@@ -225,10 +225,10 @@ func TestAnalyzePositive(t *testing.T) {
 			},
 			want: ProgramInfo{
 				IdbPredicates: map[ast.PredicateSym]struct{}{
-					ast.PredicateSym{"bar", 1}: struct{}{},
+					ast.PredicateSym{"bar", 1}: {},
 				},
 				EdbPredicates: map[ast.PredicateSym]struct{}{
-					ast.PredicateSym{"baz", 1}: struct{}{},
+					ast.PredicateSym{"baz", 1}: {},
 				},
 				InitialFacts: []ast.Atom{atom("baz(1)")},
 				Rules:        []ast.Clause{clause("bar(X) :- baz(X).")},
@@ -236,6 +236,49 @@ func TestAnalyzePositive(t *testing.T) {
 					ast.PredicateSym{"baz", 1}: privateDeclEmptyPackage,
 					ast.PredicateSym{"bar", 1}: makeSyntheticDecl(t, atom("bar(X)")),
 				}),
+			},
+		},
+		{
+			descr: "match",
+			decls: []ast.Decl{makeDecl(t, atom("input(X)"), nil, []ast.BoundDecl{
+				ast.NewBoundDecl(ast.ApplyFn{symbols.ListType, []ast.BaseTerm{ast.NameBound}}),
+			}, nil)},
+			program: []ast.Clause{
+				clause("starts_with_a(X) :- input(X), :match_cons(X, Y, Z), Y = /a ."),
+			},
+			want: ProgramInfo{
+				IdbPredicates: map[ast.PredicateSym]struct{}{
+					ast.PredicateSym{"starts_with_a", 1}: struct{}{},
+				},
+				EdbPredicates: map[ast.PredicateSym]struct{}{
+					ast.PredicateSym{"input", 1}: struct{}{},
+				},
+				InitialFacts: nil,
+				Rules: []ast.Clause{
+					clause("starts_with_a(X) :- input(X), :match_cons(X, Y, Z), Y = /a ."),
+				},
+				Decls: mustDesugar(t, map[ast.PredicateSym]ast.Decl{
+					ast.PredicateSym{"starts_with_a", 1}: makeSyntheticDecl(t, atom("starts_with_a(X)")),
+					ast.PredicateSym{"input", 1}: makeDecl(t, atom("input(X)"), nil, []ast.BoundDecl{
+						ast.NewBoundDecl(ast.ApplyFn{symbols.ListType, []ast.BaseTerm{ast.NameBound}}),
+					}, nil),
+				}),
+			},
+		},
+		{
+			descr: "empty array is evaluated",
+			program: []ast.Clause{
+				clause("a_list([])."),
+			},
+			want: ProgramInfo{
+				IdbPredicates: map[ast.PredicateSym]struct{}{},
+				EdbPredicates: map[ast.PredicateSym]struct{}{
+					ast.PredicateSym{"a_list", 1}: struct{}{},
+				},
+				Decls: mustDesugar(t, map[ast.PredicateSym]ast.Decl{
+					ast.PredicateSym{"a_list", 1}: makeSyntheticDecl(t, atom("a_list(X0)")),
+				}),
+				InitialFacts: []ast.Atom{{Predicate: ast.PredicateSym{"a_list", 1}, Args: []ast.BaseTerm{ast.ListNil}}},
 			},
 		},
 	}
@@ -296,6 +339,22 @@ func TestAnalyzeNegative(t *testing.T) {
 			program: []ast.Clause{
 				// Function "foo" is not defined.
 				clause("sna(X) :- sna(X) |> do fn:foo(X)."),
+			}},
+		{
+			descr:           ":match variables have to be distinct",
+			knownPredicates: nil,
+			decls:           nil,
+			program: []ast.Clause{
+				clause("input([/foo])."),
+				clause("do_the_match(X, Y) :- input(X), :match(X, Y, Y)."),
+			}},
+		{
+			descr:           ":match matched variable has to be distinct",
+			knownPredicates: nil,
+			decls:           nil,
+			program: []ast.Clause{
+				clause("input([/foo])."),
+				clause("do_the_match(X, Y) :- input(X), :match(X, Y, X)."),
 			}},
 		{
 			descr:           "variable Y does not appear anywhere",
@@ -409,7 +468,7 @@ func newBoundsTestCaseWithNameTrie(clauses []ast.Clause, decls []ast.Decl, nameT
 func makeSimpleDecl(a ast.Atom, bound ...ast.BaseTerm) ast.Decl {
 	return ast.Decl{
 		DeclaredAtom: a,
-		Bounds:       []ast.BoundDecl{ast.BoundDecl{bound}},
+		Bounds:       []ast.BoundDecl{{bound}},
 	}
 }
 

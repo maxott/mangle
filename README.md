@@ -4,10 +4,11 @@ Mangle is a programming language for deductive database programming. It
 is an extension of Datalog, with various extensions like aggregation, function
 calls and optional type-checking.
 
-Deductive database is useful for bringing data from multiple data sources
-together since it enables us to represent and query that data in a uniform way.
-It can also be used to model domain knowledge, similar to machine-readable
-ontology but without being restricted to binary predicates.
+Deductive database programming is useful for bringing data from multiple
+data sources together since it enables us to represent and query that data in
+a uniform way. It can also be used to model domain knowledge, similar
+to machine-readable ontology but without being restricted to binary
+predicates.
 
 Datalog is an expressive declarative language similar to relational calculus
 (think SQL and relational views). Unlike relational calculus, it also supports
@@ -15,23 +16,22 @@ recursive rules and program structuring in a straightforward way.
 
 Mangle contains Datalog as a fragment and adds extensions that make its use
 more practical. Some of the good properties like guaranteed termination are
-lost when extensions are used.
+lost when such extensions are used.
 
 The goal of Mangle as an open source project is to convey the concepts in
 a way that is accessible to developers and lends itself to easy experimentation.
 This repository contains an implementation of Mangle as a go library that can be
 easily embedded into applications.
 
-This is not an officially supported Google product. The Mangle maintainers
-welcome external contributions to spec, documentation and this
-implementation (see [CONTRIBUTING.md](CONTRIBUTING.md)) and also other
-implementations. Pull requests will be handled [like for tensorflow](https://github.com/tensorflow/tensorflow/blob/master/CONTRIBUTING.md),
-to ensure our internal use cases and tests continue to work.
+Check out the [docs](docs/README.md) and the
+[GitHub discussions](https://github.com/google/mangle/discussions) for more
+information. There is also a Q&A section.
+
+This is not an officially supported Google product. 
 
 ## Table of Contents
 - [Examples](#examples)
-<!-- - Installation(#installation) -->
-- Building(#building)
+- [Building](#building)
 
 ## Examples
 
@@ -39,8 +39,8 @@ to ensure our internal use cases and tests continue to work.
 
 Imagine you were asked to spot software affected by the
 [log4j vulnerability discovered in late 2021](https://www.cisa.gov/uscert/apache-log4j-vulnerability-guidance).
-We do this by looking for projects that contain a Java archive (jar file) of
-log4j that is not patched version.
+We want to look for projects that contain a Java archive (jar file) of
+log4j that is not updated to the patched version.
 
 ```prolog
 projects_with_vulnerable_log4j(P) :-
@@ -99,48 +99,36 @@ either directly, or through some dependency.
 
 ### Knowledge Graphs, Property Graphs
 
-When engineering requirements, it is useful to model a slice of the real world 
-through a domain model and controlled vocabulary. Description logics use
-roles to describe how concepts interact, but the relationships are always
-binary. Mangle can represent binary predicates, but also arbitrary n-ary relations.
+In requirements engineering, one needs to captures real world concepts in a
+domain model and controlled vocabulary. Description logics use
+roles to describe how concepts interact, but these relationships are always
+binary. Mangle can represent binary predicates, but also arbitrary n-ary
+relations. Moreover it also has support for structured data.
 
 ```
-one_or_two_leg_flight(Codes, Start, Destination, Price) :-
-  direct_flight(Code, Start, Destination, Price)
-  |> let Codes = fn:list(Code).
+one_or_two_leg_trip(Codes, Start, Destination, Price) :-
+  direct_conn(Code, Start, Destination, Price)
+  |> let Codes = [Code].
 
-one_or_two_leg_flight(Codes, Start, Destination, Price) :-
-  direct_flight(FirstCode, Start, FirstStop, FirstLegPrice).
-  direct_flight(SecondCode, FirstStop, Destination, SecondLegPrice)
-  |> let Codes = [FirstCode, SecondCode],
+one_or_two_leg_trip(Codes, Start, Destination, Price) :-
+  direct_conn(FirstCode, Start, Connecting, FirstLegPrice).
+  direct_conn(SecondCode, Connecting, Destination, SecondLegPrice)
+  |> let Code = [FirstCode, SecondCode],
      let Price = fn:sum(FirstLegPrice, SecondLegPrice).
+
 ```
 
 ```mermaid
 graph LR
-    A[Square Rect] -- Link text --> B((Circle))
-    A --> C(Round Rect)
-    B --> D{Rhombus}
-    C --> D
+    /zurich -->|/code/ZL <br /> 60 CHF| /lausanne
+    /zurich -->|/code/ZB <br /> 30 CHF| /bern
+    /bern -->|/code/ZL <br /> 30 CHF| /lausanne
 ```
-
-<!--
-## Installation
-
-Mangle has an implementation as a library in Go that can be embedded in
-your application. It also comes with a very simple interpreter shell.
-(editorial note: we'll verify these after source is on github)
-
-```
-go get github.com/google/mangle
-go run mangle/interpreter/main (TODO:check this??)
-```
--->
 
 ## Building
 
-If you want to build from source develop extensions, you need to set up 
-ANTLR first, which requires Java runtime environment.
+If you want to build from source, you need to set up  ANTLR first,
+which requires Java runtime environment.
 
 ```
 wget http://www.antlr.org/download/antlr-4.11.1-complete.jar
@@ -152,12 +140,16 @@ Then you can generate the parser sources
 antlr -Dlanguage=Go -package gen -o ./ parse/gen/Mangle.g4 -visitor
 ```
 
-... and finally build the library:
+... and finally get the dependencies (see [go.mod](go.mod)) and build the library:
 ```
-go build ...
+go get ./...
+go build ./...
 ```
 
 ## Contributing
 
-This project is used in an internal application. Pull requests will
-be handled by merging into internal repository.
+The Mangle maintainers welcome external contributions to spec, documentation
+and this implementation (see [CONTRIBUTING.md](CONTRIBUTING.md)) and also other
+implementations. Pull requests will be handled
+[like for tensorflow](https://github.com/tensorflow/tensorflow/blob/master/CONTRIBUTING.md),
+to ensure our internal usage and tests will pass. 
