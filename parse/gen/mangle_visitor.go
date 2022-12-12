@@ -64,6 +64,12 @@ type MangleVisitor interface {
 	// Visit a parse tree produced by MangleParser#List.
 	VisitList(ctx *ListContext) interface{}
 
+	// Visit a parse tree produced by MangleParser#Map.
+	VisitMap(ctx *MapContext) interface{}
+
+	// Visit a parse tree produced by MangleParser#Struct.
+	VisitStruct(ctx *StructContext) interface{}
+
 	// Visit a parse tree produced by MangleParser#atom.
 	VisitAtom(ctx *AtomContext) interface{}
 

@@ -32,15 +32,16 @@ var mangleParserStaticData struct {
 func mangleParserInit() {
 	staticData := &mangleParserStaticData
 	staticData.literalNames = []string{
-		"", "'.'", "'descr'", "'inclusion'", "", "", "'Package'", "'Use'", "'Decl'",
-		"'bound'", "'let'", "'do'", "'('", "')'", "'['", "']'", "'='", "'!='",
-		"','", "'!'", "'<'", "'<='", "':-'", "'\\n'", "'|>'",
+		"", "'.'", "'descr'", "'inclusion'", "':'", "'{'", "'}'", "", "", "'Package'",
+		"'Use'", "'Decl'", "'bound'", "'let'", "'do'", "'('", "')'", "'['",
+		"']'", "'='", "'!='", "','", "'!'", "'<'", "'<='", "':-'", "'\\n'",
+		"'|>'",
 	}
 	staticData.symbolicNames = []string{
-		"", "", "", "", "WHITESPACE", "COMMENT", "PACKAGE", "USE", "DECL", "BOUND",
-		"LET", "DO", "LPAREN", "RPAREN", "LBRACKET", "RBRACKET", "EQ", "BANGEQ",
-		"COMMA", "BANG", "LESS", "LESSEQ", "COLONDASH", "NEWLINE", "PIPEGREATER",
-		"NUMBER", "VARIABLE", "NAME", "CONSTANT", "STRING",
+		"", "", "", "", "", "", "", "WHITESPACE", "COMMENT", "PACKAGE", "USE",
+		"DECL", "BOUND", "LET", "DO", "LPAREN", "RPAREN", "LBRACKET", "RBRACKET",
+		"EQ", "BANGEQ", "COMMA", "BANG", "LESS", "LESSEQ", "COLONDASH", "NEWLINE",
+		"PIPEGREATER", "NUMBER", "VARIABLE", "NAME", "CONSTANT", "STRING",
 	}
 	staticData.ruleNames = []string{
 		"start", "program", "packageDecl", "useDecl", "decl", "descrBlock",
@@ -49,7 +50,7 @@ func mangleParserInit() {
 	}
 	staticData.predictionContextCache = antlr.NewPredictionContextCache()
 	staticData.serializedATN = []int32{
-		4, 1, 29, 202, 2, 0, 7, 0, 2, 1, 7, 1, 2, 2, 7, 2, 2, 3, 7, 3, 2, 4, 7,
+		4, 1, 32, 236, 2, 0, 7, 0, 2, 1, 7, 1, 2, 2, 7, 2, 2, 3, 7, 3, 2, 4, 7,
 		4, 2, 5, 7, 5, 2, 6, 7, 6, 2, 7, 7, 7, 2, 8, 7, 8, 2, 9, 7, 9, 2, 10, 7,
 		10, 2, 11, 7, 11, 2, 12, 7, 12, 2, 13, 7, 13, 2, 14, 7, 14, 2, 15, 7, 15,
 		1, 0, 1, 0, 1, 0, 1, 1, 3, 1, 37, 8, 1, 1, 1, 5, 1, 40, 8, 1, 10, 1, 12,
@@ -67,76 +68,93 @@ func mangleParserInit() {
 		12, 1, 12, 1, 12, 3, 12, 154, 8, 12, 1, 13, 1, 13, 1, 13, 1, 13, 1, 13,
 		1, 13, 1, 13, 1, 13, 1, 13, 5, 13, 165, 8, 13, 10, 13, 12, 13, 168, 9,
 		13, 3, 13, 170, 8, 13, 1, 13, 1, 13, 1, 13, 1, 13, 1, 13, 5, 13, 177, 8,
-		13, 10, 13, 12, 13, 180, 9, 13, 3, 13, 182, 8, 13, 1, 13, 3, 13, 185, 8,
-		13, 1, 14, 1, 14, 1, 15, 1, 15, 1, 15, 1, 15, 5, 15, 193, 8, 15, 10, 15,
-		12, 15, 196, 9, 15, 3, 15, 198, 8, 15, 1, 15, 1, 15, 1, 15, 0, 0, 16, 0,
-		2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 0, 1, 2, 0, 16,
-		17, 20, 21, 215, 0, 32, 1, 0, 0, 0, 2, 36, 1, 0, 0, 0, 4, 51, 1, 0, 0,
-		0, 6, 58, 1, 0, 0, 0, 8, 65, 1, 0, 0, 0, 10, 81, 1, 0, 0, 0, 12, 84, 1,
-		0, 0, 0, 14, 96, 1, 0, 0, 0, 16, 99, 1, 0, 0, 0, 18, 106, 1, 0, 0, 0, 20,
-		139, 1, 0, 0, 0, 22, 141, 1, 0, 0, 0, 24, 153, 1, 0, 0, 0, 26, 184, 1,
-		0, 0, 0, 28, 186, 1, 0, 0, 0, 30, 188, 1, 0, 0, 0, 32, 33, 3, 2, 1, 0,
-		33, 34, 5, 0, 0, 1, 34, 1, 1, 0, 0, 0, 35, 37, 3, 4, 2, 0, 36, 35, 1, 0,
-		0, 0, 36, 37, 1, 0, 0, 0, 37, 41, 1, 0, 0, 0, 38, 40, 3, 6, 3, 0, 39, 38,
-		1, 0, 0, 0, 40, 43, 1, 0, 0, 0, 41, 39, 1, 0, 0, 0, 41, 42, 1, 0, 0, 0,
-		42, 48, 1, 0, 0, 0, 43, 41, 1, 0, 0, 0, 44, 47, 3, 8, 4, 0, 45, 47, 3,
-		16, 8, 0, 46, 44, 1, 0, 0, 0, 46, 45, 1, 0, 0, 0, 47, 50, 1, 0, 0, 0, 48,
-		46, 1, 0, 0, 0, 48, 49, 1, 0, 0, 0, 49, 3, 1, 0, 0, 0, 50, 48, 1, 0, 0,
-		0, 51, 52, 5, 6, 0, 0, 52, 54, 5, 27, 0, 0, 53, 55, 3, 30, 15, 0, 54, 53,
-		1, 0, 0, 0, 54, 55, 1, 0, 0, 0, 55, 56, 1, 0, 0, 0, 56, 57, 5, 19, 0, 0,
-		57, 5, 1, 0, 0, 0, 58, 59, 5, 7, 0, 0, 59, 61, 5, 27, 0, 0, 60, 62, 3,
-		30, 15, 0, 61, 60, 1, 0, 0, 0, 61, 62, 1, 0, 0, 0, 62, 63, 1, 0, 0, 0,
-		63, 64, 5, 19, 0, 0, 64, 7, 1, 0, 0, 0, 65, 66, 5, 8, 0, 0, 66, 68, 3,
-		28, 14, 0, 67, 69, 3, 10, 5, 0, 68, 67, 1, 0, 0, 0, 68, 69, 1, 0, 0, 0,
-		69, 73, 1, 0, 0, 0, 70, 72, 3, 12, 6, 0, 71, 70, 1, 0, 0, 0, 72, 75, 1,
-		0, 0, 0, 73, 71, 1, 0, 0, 0, 73, 74, 1, 0, 0, 0, 74, 77, 1, 0, 0, 0, 75,
-		73, 1, 0, 0, 0, 76, 78, 3, 14, 7, 0, 77, 76, 1, 0, 0, 0, 77, 78, 1, 0,
-		0, 0, 78, 79, 1, 0, 0, 0, 79, 80, 5, 1, 0, 0, 80, 9, 1, 0, 0, 0, 81, 82,
-		5, 2, 0, 0, 82, 83, 3, 30, 15, 0, 83, 11, 1, 0, 0, 0, 84, 85, 5, 9, 0,
-		0, 85, 86, 5, 14, 0, 0, 86, 91, 3, 26, 13, 0, 87, 88, 5, 18, 0, 0, 88,
-		90, 3, 26, 13, 0, 89, 87, 1, 0, 0, 0, 90, 93, 1, 0, 0, 0, 91, 89, 1, 0,
-		0, 0, 91, 92, 1, 0, 0, 0, 92, 94, 1, 0, 0, 0, 93, 91, 1, 0, 0, 0, 94, 95,
-		5, 15, 0, 0, 95, 13, 1, 0, 0, 0, 96, 97, 5, 3, 0, 0, 97, 98, 3, 30, 15,
-		0, 98, 15, 1, 0, 0, 0, 99, 102, 3, 28, 14, 0, 100, 101, 5, 22, 0, 0, 101,
-		103, 3, 18, 9, 0, 102, 100, 1, 0, 0, 0, 102, 103, 1, 0, 0, 0, 103, 104,
-		1, 0, 0, 0, 104, 105, 5, 1, 0, 0, 105, 17, 1, 0, 0, 0, 106, 111, 3, 24,
-		12, 0, 107, 108, 5, 18, 0, 0, 108, 110, 3, 24, 12, 0, 109, 107, 1, 0, 0,
-		0, 110, 113, 1, 0, 0, 0, 111, 109, 1, 0, 0, 0, 111, 112, 1, 0, 0, 0, 112,
-		116, 1, 0, 0, 0, 113, 111, 1, 0, 0, 0, 114, 115, 5, 24, 0, 0, 115, 117,
-		3, 20, 10, 0, 116, 114, 1, 0, 0, 0, 116, 117, 1, 0, 0, 0, 117, 19, 1, 0,
-		0, 0, 118, 119, 5, 11, 0, 0, 119, 129, 3, 26, 13, 0, 120, 121, 5, 18, 0,
-		0, 121, 126, 3, 22, 11, 0, 122, 123, 5, 18, 0, 0, 123, 125, 3, 22, 11,
-		0, 124, 122, 1, 0, 0, 0, 125, 128, 1, 0, 0, 0, 126, 124, 1, 0, 0, 0, 126,
-		127, 1, 0, 0, 0, 127, 130, 1, 0, 0, 0, 128, 126, 1, 0, 0, 0, 129, 120,
-		1, 0, 0, 0, 129, 130, 1, 0, 0, 0, 130, 140, 1, 0, 0, 0, 131, 136, 3, 22,
-		11, 0, 132, 133, 5, 18, 0, 0, 133, 135, 3, 22, 11, 0, 134, 132, 1, 0, 0,
-		0, 135, 138, 1, 0, 0, 0, 136, 134, 1, 0, 0, 0, 136, 137, 1, 0, 0, 0, 137,
+		13, 10, 13, 12, 13, 180, 9, 13, 3, 13, 182, 8, 13, 1, 13, 1, 13, 1, 13,
+		1, 13, 1, 13, 1, 13, 1, 13, 1, 13, 1, 13, 1, 13, 5, 13, 194, 8, 13, 10,
+		13, 12, 13, 197, 9, 13, 3, 13, 199, 8, 13, 1, 13, 1, 13, 1, 13, 1, 13,
+		1, 13, 1, 13, 1, 13, 1, 13, 1, 13, 1, 13, 5, 13, 211, 8, 13, 10, 13, 12,
+		13, 214, 9, 13, 3, 13, 216, 8, 13, 1, 13, 3, 13, 219, 8, 13, 1, 14, 1,
+		14, 1, 15, 1, 15, 1, 15, 1, 15, 5, 15, 227, 8, 15, 10, 15, 12, 15, 230,
+		9, 15, 3, 15, 232, 8, 15, 1, 15, 1, 15, 1, 15, 0, 0, 16, 0, 2, 4, 6, 8,
+		10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 0, 1, 2, 0, 19, 20, 23, 24,
+		255, 0, 32, 1, 0, 0, 0, 2, 36, 1, 0, 0, 0, 4, 51, 1, 0, 0, 0, 6, 58, 1,
+		0, 0, 0, 8, 65, 1, 0, 0, 0, 10, 81, 1, 0, 0, 0, 12, 84, 1, 0, 0, 0, 14,
+		96, 1, 0, 0, 0, 16, 99, 1, 0, 0, 0, 18, 106, 1, 0, 0, 0, 20, 139, 1, 0,
+		0, 0, 22, 141, 1, 0, 0, 0, 24, 153, 1, 0, 0, 0, 26, 218, 1, 0, 0, 0, 28,
+		220, 1, 0, 0, 0, 30, 222, 1, 0, 0, 0, 32, 33, 3, 2, 1, 0, 33, 34, 5, 0,
+		0, 1, 34, 1, 1, 0, 0, 0, 35, 37, 3, 4, 2, 0, 36, 35, 1, 0, 0, 0, 36, 37,
+		1, 0, 0, 0, 37, 41, 1, 0, 0, 0, 38, 40, 3, 6, 3, 0, 39, 38, 1, 0, 0, 0,
+		40, 43, 1, 0, 0, 0, 41, 39, 1, 0, 0, 0, 41, 42, 1, 0, 0, 0, 42, 48, 1,
+		0, 0, 0, 43, 41, 1, 0, 0, 0, 44, 47, 3, 8, 4, 0, 45, 47, 3, 16, 8, 0, 46,
+		44, 1, 0, 0, 0, 46, 45, 1, 0, 0, 0, 47, 50, 1, 0, 0, 0, 48, 46, 1, 0, 0,
+		0, 48, 49, 1, 0, 0, 0, 49, 3, 1, 0, 0, 0, 50, 48, 1, 0, 0, 0, 51, 52, 5,
+		9, 0, 0, 52, 54, 5, 30, 0, 0, 53, 55, 3, 30, 15, 0, 54, 53, 1, 0, 0, 0,
+		54, 55, 1, 0, 0, 0, 55, 56, 1, 0, 0, 0, 56, 57, 5, 22, 0, 0, 57, 5, 1,
+		0, 0, 0, 58, 59, 5, 10, 0, 0, 59, 61, 5, 30, 0, 0, 60, 62, 3, 30, 15, 0,
+		61, 60, 1, 0, 0, 0, 61, 62, 1, 0, 0, 0, 62, 63, 1, 0, 0, 0, 63, 64, 5,
+		22, 0, 0, 64, 7, 1, 0, 0, 0, 65, 66, 5, 11, 0, 0, 66, 68, 3, 28, 14, 0,
+		67, 69, 3, 10, 5, 0, 68, 67, 1, 0, 0, 0, 68, 69, 1, 0, 0, 0, 69, 73, 1,
+		0, 0, 0, 70, 72, 3, 12, 6, 0, 71, 70, 1, 0, 0, 0, 72, 75, 1, 0, 0, 0, 73,
+		71, 1, 0, 0, 0, 73, 74, 1, 0, 0, 0, 74, 77, 1, 0, 0, 0, 75, 73, 1, 0, 0,
+		0, 76, 78, 3, 14, 7, 0, 77, 76, 1, 0, 0, 0, 77, 78, 1, 0, 0, 0, 78, 79,
+		1, 0, 0, 0, 79, 80, 5, 1, 0, 0, 80, 9, 1, 0, 0, 0, 81, 82, 5, 2, 0, 0,
+		82, 83, 3, 30, 15, 0, 83, 11, 1, 0, 0, 0, 84, 85, 5, 12, 0, 0, 85, 86,
+		5, 17, 0, 0, 86, 91, 3, 26, 13, 0, 87, 88, 5, 21, 0, 0, 88, 90, 3, 26,
+		13, 0, 89, 87, 1, 0, 0, 0, 90, 93, 1, 0, 0, 0, 91, 89, 1, 0, 0, 0, 91,
+		92, 1, 0, 0, 0, 92, 94, 1, 0, 0, 0, 93, 91, 1, 0, 0, 0, 94, 95, 5, 18,
+		0, 0, 95, 13, 1, 0, 0, 0, 96, 97, 5, 3, 0, 0, 97, 98, 3, 30, 15, 0, 98,
+		15, 1, 0, 0, 0, 99, 102, 3, 28, 14, 0, 100, 101, 5, 25, 0, 0, 101, 103,
+		3, 18, 9, 0, 102, 100, 1, 0, 0, 0, 102, 103, 1, 0, 0, 0, 103, 104, 1, 0,
+		0, 0, 104, 105, 5, 1, 0, 0, 105, 17, 1, 0, 0, 0, 106, 111, 3, 24, 12, 0,
+		107, 108, 5, 21, 0, 0, 108, 110, 3, 24, 12, 0, 109, 107, 1, 0, 0, 0, 110,
+		113, 1, 0, 0, 0, 111, 109, 1, 0, 0, 0, 111, 112, 1, 0, 0, 0, 112, 116,
+		1, 0, 0, 0, 113, 111, 1, 0, 0, 0, 114, 115, 5, 27, 0, 0, 115, 117, 3, 20,
+		10, 0, 116, 114, 1, 0, 0, 0, 116, 117, 1, 0, 0, 0, 117, 19, 1, 0, 0, 0,
+		118, 119, 5, 14, 0, 0, 119, 129, 3, 26, 13, 0, 120, 121, 5, 21, 0, 0, 121,
+		126, 3, 22, 11, 0, 122, 123, 5, 21, 0, 0, 123, 125, 3, 22, 11, 0, 124,
+		122, 1, 0, 0, 0, 125, 128, 1, 0, 0, 0, 126, 124, 1, 0, 0, 0, 126, 127,
+		1, 0, 0, 0, 127, 130, 1, 0, 0, 0, 128, 126, 1, 0, 0, 0, 129, 120, 1, 0,
+		0, 0, 129, 130, 1, 0, 0, 0, 130, 140, 1, 0, 0, 0, 131, 136, 3, 22, 11,
+		0, 132, 133, 5, 21, 0, 0, 133, 135, 3, 22, 11, 0, 134, 132, 1, 0, 0, 0,
+		135, 138, 1, 0, 0, 0, 136, 134, 1, 0, 0, 0, 136, 137, 1, 0, 0, 0, 137,
 		140, 1, 0, 0, 0, 138, 136, 1, 0, 0, 0, 139, 118, 1, 0, 0, 0, 139, 131,
-		1, 0, 0, 0, 140, 21, 1, 0, 0, 0, 141, 142, 5, 10, 0, 0, 142, 143, 5, 26,
-		0, 0, 143, 144, 5, 16, 0, 0, 144, 145, 3, 26, 13, 0, 145, 23, 1, 0, 0,
+		1, 0, 0, 0, 140, 21, 1, 0, 0, 0, 141, 142, 5, 13, 0, 0, 142, 143, 5, 29,
+		0, 0, 143, 144, 5, 19, 0, 0, 144, 145, 3, 26, 13, 0, 145, 23, 1, 0, 0,
 		0, 146, 149, 3, 26, 13, 0, 147, 148, 7, 0, 0, 0, 148, 150, 3, 26, 13, 0,
 		149, 147, 1, 0, 0, 0, 149, 150, 1, 0, 0, 0, 150, 154, 1, 0, 0, 0, 151,
-		152, 5, 19, 0, 0, 152, 154, 3, 26, 13, 0, 153, 146, 1, 0, 0, 0, 153, 151,
-		1, 0, 0, 0, 154, 25, 1, 0, 0, 0, 155, 185, 5, 26, 0, 0, 156, 185, 5, 28,
-		0, 0, 157, 185, 5, 25, 0, 0, 158, 185, 5, 29, 0, 0, 159, 160, 5, 27, 0,
-		0, 160, 169, 5, 12, 0, 0, 161, 166, 3, 26, 13, 0, 162, 163, 5, 18, 0, 0,
+		152, 5, 22, 0, 0, 152, 154, 3, 26, 13, 0, 153, 146, 1, 0, 0, 0, 153, 151,
+		1, 0, 0, 0, 154, 25, 1, 0, 0, 0, 155, 219, 5, 29, 0, 0, 156, 219, 5, 31,
+		0, 0, 157, 219, 5, 28, 0, 0, 158, 219, 5, 32, 0, 0, 159, 160, 5, 30, 0,
+		0, 160, 169, 5, 15, 0, 0, 161, 166, 3, 26, 13, 0, 162, 163, 5, 21, 0, 0,
 		163, 165, 3, 26, 13, 0, 164, 162, 1, 0, 0, 0, 165, 168, 1, 0, 0, 0, 166,
 		164, 1, 0, 0, 0, 166, 167, 1, 0, 0, 0, 167, 170, 1, 0, 0, 0, 168, 166,
 		1, 0, 0, 0, 169, 161, 1, 0, 0, 0, 169, 170, 1, 0, 0, 0, 170, 171, 1, 0,
-		0, 0, 171, 185, 5, 13, 0, 0, 172, 181, 5, 14, 0, 0, 173, 178, 3, 26, 13,
-		0, 174, 175, 5, 18, 0, 0, 175, 177, 3, 26, 13, 0, 176, 174, 1, 0, 0, 0,
+		0, 0, 171, 219, 5, 16, 0, 0, 172, 181, 5, 17, 0, 0, 173, 178, 3, 26, 13,
+		0, 174, 175, 5, 21, 0, 0, 175, 177, 3, 26, 13, 0, 176, 174, 1, 0, 0, 0,
 		177, 180, 1, 0, 0, 0, 178, 176, 1, 0, 0, 0, 178, 179, 1, 0, 0, 0, 179,
 		182, 1, 0, 0, 0, 180, 178, 1, 0, 0, 0, 181, 173, 1, 0, 0, 0, 181, 182,
-		1, 0, 0, 0, 182, 183, 1, 0, 0, 0, 183, 185, 5, 15, 0, 0, 184, 155, 1, 0,
-		0, 0, 184, 156, 1, 0, 0, 0, 184, 157, 1, 0, 0, 0, 184, 158, 1, 0, 0, 0,
-		184, 159, 1, 0, 0, 0, 184, 172, 1, 0, 0, 0, 185, 27, 1, 0, 0, 0, 186, 187,
-		3, 26, 13, 0, 187, 29, 1, 0, 0, 0, 188, 197, 5, 14, 0, 0, 189, 194, 3,
-		28, 14, 0, 190, 191, 5, 18, 0, 0, 191, 193, 3, 28, 14, 0, 192, 190, 1,
-		0, 0, 0, 193, 196, 1, 0, 0, 0, 194, 192, 1, 0, 0, 0, 194, 195, 1, 0, 0,
-		0, 195, 198, 1, 0, 0, 0, 196, 194, 1, 0, 0, 0, 197, 189, 1, 0, 0, 0, 197,
-		198, 1, 0, 0, 0, 198, 199, 1, 0, 0, 0, 199, 200, 5, 15, 0, 0, 200, 31,
-		1, 0, 0, 0, 26, 36, 41, 46, 48, 54, 61, 68, 73, 77, 91, 102, 111, 116,
-		126, 129, 136, 139, 149, 153, 166, 169, 178, 181, 184, 194, 197,
+		1, 0, 0, 0, 182, 183, 1, 0, 0, 0, 183, 219, 5, 18, 0, 0, 184, 198, 5, 17,
+		0, 0, 185, 186, 3, 26, 13, 0, 186, 187, 5, 4, 0, 0, 187, 195, 3, 26, 13,
+		0, 188, 189, 5, 21, 0, 0, 189, 190, 3, 26, 13, 0, 190, 191, 5, 4, 0, 0,
+		191, 192, 3, 26, 13, 0, 192, 194, 1, 0, 0, 0, 193, 188, 1, 0, 0, 0, 194,
+		197, 1, 0, 0, 0, 195, 193, 1, 0, 0, 0, 195, 196, 1, 0, 0, 0, 196, 199,
+		1, 0, 0, 0, 197, 195, 1, 0, 0, 0, 198, 185, 1, 0, 0, 0, 198, 199, 1, 0,
+		0, 0, 199, 200, 1, 0, 0, 0, 200, 219, 5, 18, 0, 0, 201, 215, 5, 5, 0, 0,
+		202, 203, 3, 26, 13, 0, 203, 204, 5, 4, 0, 0, 204, 212, 3, 26, 13, 0, 205,
+		206, 5, 21, 0, 0, 206, 207, 3, 26, 13, 0, 207, 208, 5, 4, 0, 0, 208, 209,
+		3, 26, 13, 0, 209, 211, 1, 0, 0, 0, 210, 205, 1, 0, 0, 0, 211, 214, 1,
+		0, 0, 0, 212, 210, 1, 0, 0, 0, 212, 213, 1, 0, 0, 0, 213, 216, 1, 0, 0,
+		0, 214, 212, 1, 0, 0, 0, 215, 202, 1, 0, 0, 0, 215, 216, 1, 0, 0, 0, 216,
+		217, 1, 0, 0, 0, 217, 219, 5, 6, 0, 0, 218, 155, 1, 0, 0, 0, 218, 156,
+		1, 0, 0, 0, 218, 157, 1, 0, 0, 0, 218, 158, 1, 0, 0, 0, 218, 159, 1, 0,
+		0, 0, 218, 172, 1, 0, 0, 0, 218, 184, 1, 0, 0, 0, 218, 201, 1, 0, 0, 0,
+		219, 27, 1, 0, 0, 0, 220, 221, 3, 26, 13, 0, 221, 29, 1, 0, 0, 0, 222,
+		231, 5, 17, 0, 0, 223, 228, 3, 28, 14, 0, 224, 225, 5, 21, 0, 0, 225, 227,
+		3, 28, 14, 0, 226, 224, 1, 0, 0, 0, 227, 230, 1, 0, 0, 0, 228, 226, 1,
+		0, 0, 0, 228, 229, 1, 0, 0, 0, 229, 232, 1, 0, 0, 0, 230, 228, 1, 0, 0,
+		0, 231, 223, 1, 0, 0, 0, 231, 232, 1, 0, 0, 0, 232, 233, 1, 0, 0, 0, 233,
+		234, 5, 18, 0, 0, 234, 31, 1, 0, 0, 0, 30, 36, 41, 46, 48, 54, 61, 68,
+		73, 77, 91, 102, 111, 116, 126, 129, 136, 139, 149, 153, 166, 169, 178,
+		181, 195, 198, 212, 215, 218, 228, 231,
 	}
 	deserializer := antlr.NewATNDeserializer(nil)
 	staticData.atn = deserializer.Deserialize(staticData.serializedATN)
@@ -178,32 +196,35 @@ const (
 	MangleParserT__0        = 1
 	MangleParserT__1        = 2
 	MangleParserT__2        = 3
-	MangleParserWHITESPACE  = 4
-	MangleParserCOMMENT     = 5
-	MangleParserPACKAGE     = 6
-	MangleParserUSE         = 7
-	MangleParserDECL        = 8
-	MangleParserBOUND       = 9
-	MangleParserLET         = 10
-	MangleParserDO          = 11
-	MangleParserLPAREN      = 12
-	MangleParserRPAREN      = 13
-	MangleParserLBRACKET    = 14
-	MangleParserRBRACKET    = 15
-	MangleParserEQ          = 16
-	MangleParserBANGEQ      = 17
-	MangleParserCOMMA       = 18
-	MangleParserBANG        = 19
-	MangleParserLESS        = 20
-	MangleParserLESSEQ      = 21
-	MangleParserCOLONDASH   = 22
-	MangleParserNEWLINE     = 23
-	MangleParserPIPEGREATER = 24
-	MangleParserNUMBER      = 25
-	MangleParserVARIABLE    = 26
-	MangleParserNAME        = 27
-	MangleParserCONSTANT    = 28
-	MangleParserSTRING      = 29
+	MangleParserT__3        = 4
+	MangleParserT__4        = 5
+	MangleParserT__5        = 6
+	MangleParserWHITESPACE  = 7
+	MangleParserCOMMENT     = 8
+	MangleParserPACKAGE     = 9
+	MangleParserUSE         = 10
+	MangleParserDECL        = 11
+	MangleParserBOUND       = 12
+	MangleParserLET         = 13
+	MangleParserDO          = 14
+	MangleParserLPAREN      = 15
+	MangleParserRPAREN      = 16
+	MangleParserLBRACKET    = 17
+	MangleParserRBRACKET    = 18
+	MangleParserEQ          = 19
+	MangleParserBANGEQ      = 20
+	MangleParserCOMMA       = 21
+	MangleParserBANG        = 22
+	MangleParserLESS        = 23
+	MangleParserLESSEQ      = 24
+	MangleParserCOLONDASH   = 25
+	MangleParserNEWLINE     = 26
+	MangleParserPIPEGREATER = 27
+	MangleParserNUMBER      = 28
+	MangleParserVARIABLE    = 29
+	MangleParserNAME        = 30
+	MangleParserCONSTANT    = 31
+	MangleParserSTRING      = 32
 )
 
 // MangleParser rules.
@@ -611,7 +632,7 @@ func (p *MangleParser) Program() (localctx IProgramContext) {
 	p.GetErrorHandler().Sync(p)
 	_la = p.GetTokenStream().LA(1)
 
-	for (int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&1040204032) != 0 {
+	for (int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&8321632288) != 0 {
 		p.SetState(46)
 		p.GetErrorHandler().Sync(p)
 
@@ -622,7 +643,7 @@ func (p *MangleParser) Program() (localctx IProgramContext) {
 				p.Decl()
 			}
 
-		case MangleParserLBRACKET, MangleParserNUMBER, MangleParserVARIABLE, MangleParserNAME, MangleParserCONSTANT, MangleParserSTRING:
+		case MangleParserT__4, MangleParserLBRACKET, MangleParserNUMBER, MangleParserVARIABLE, MangleParserNAME, MangleParserCONSTANT, MangleParserSTRING:
 			{
 				p.SetState(45)
 				p.Clause()
@@ -2503,7 +2524,7 @@ func (p *MangleParser) LiteralOrFml() (localctx ILiteralOrFmlContext) {
 	p.GetErrorHandler().Sync(p)
 
 	switch p.GetTokenStream().LA(1) {
-	case MangleParserLBRACKET, MangleParserNUMBER, MangleParserVARIABLE, MangleParserNAME, MangleParserCONSTANT, MangleParserSTRING:
+	case MangleParserT__4, MangleParserLBRACKET, MangleParserNUMBER, MangleParserVARIABLE, MangleParserNAME, MangleParserCONSTANT, MangleParserSTRING:
 		p.EnterOuterAlt(localctx, 1)
 		{
 			p.SetState(146)
@@ -2513,12 +2534,12 @@ func (p *MangleParser) LiteralOrFml() (localctx ILiteralOrFmlContext) {
 		p.GetErrorHandler().Sync(p)
 		_la = p.GetTokenStream().LA(1)
 
-		if (int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&3342336) != 0 {
+		if (int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&26738688) != 0 {
 			{
 				p.SetState(147)
 				_la = p.GetTokenStream().LA(1)
 
-				if !((int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&3342336) != 0) {
+				if !((int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&26738688) != 0) {
 					p.GetErrorHandler().RecoverInline(p)
 				} else {
 					p.GetErrorHandler().ReportMatch(p)
@@ -2974,6 +2995,192 @@ func (s *ListContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	}
 }
 
+type MapContext struct {
+	*TermContext
+}
+
+func NewMapContext(parser antlr.Parser, ctx antlr.ParserRuleContext) *MapContext {
+	var p = new(MapContext)
+
+	p.TermContext = NewEmptyTermContext()
+	p.parser = parser
+	p.CopyFrom(ctx.(*TermContext))
+
+	return p
+}
+
+func (s *MapContext) GetRuleContext() antlr.RuleContext {
+	return s
+}
+
+func (s *MapContext) LBRACKET() antlr.TerminalNode {
+	return s.GetToken(MangleParserLBRACKET, 0)
+}
+
+func (s *MapContext) RBRACKET() antlr.TerminalNode {
+	return s.GetToken(MangleParserRBRACKET, 0)
+}
+
+func (s *MapContext) AllTerm() []ITermContext {
+	children := s.GetChildren()
+	len := 0
+	for _, ctx := range children {
+		if _, ok := ctx.(ITermContext); ok {
+			len++
+		}
+	}
+
+	tst := make([]ITermContext, len)
+	i := 0
+	for _, ctx := range children {
+		if t, ok := ctx.(ITermContext); ok {
+			tst[i] = t.(ITermContext)
+			i++
+		}
+	}
+
+	return tst
+}
+
+func (s *MapContext) Term(i int) ITermContext {
+	var t antlr.RuleContext
+	j := 0
+	for _, ctx := range s.GetChildren() {
+		if _, ok := ctx.(ITermContext); ok {
+			if j == i {
+				t = ctx.(antlr.RuleContext)
+				break
+			}
+			j++
+		}
+	}
+
+	if t == nil {
+		return nil
+	}
+
+	return t.(ITermContext)
+}
+
+func (s *MapContext) AllCOMMA() []antlr.TerminalNode {
+	return s.GetTokens(MangleParserCOMMA)
+}
+
+func (s *MapContext) COMMA(i int) antlr.TerminalNode {
+	return s.GetToken(MangleParserCOMMA, i)
+}
+
+func (s *MapContext) EnterRule(listener antlr.ParseTreeListener) {
+	if listenerT, ok := listener.(MangleListener); ok {
+		listenerT.EnterMap(s)
+	}
+}
+
+func (s *MapContext) ExitRule(listener antlr.ParseTreeListener) {
+	if listenerT, ok := listener.(MangleListener); ok {
+		listenerT.ExitMap(s)
+	}
+}
+
+func (s *MapContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MangleVisitor:
+		return t.VisitMap(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
+type StructContext struct {
+	*TermContext
+}
+
+func NewStructContext(parser antlr.Parser, ctx antlr.ParserRuleContext) *StructContext {
+	var p = new(StructContext)
+
+	p.TermContext = NewEmptyTermContext()
+	p.parser = parser
+	p.CopyFrom(ctx.(*TermContext))
+
+	return p
+}
+
+func (s *StructContext) GetRuleContext() antlr.RuleContext {
+	return s
+}
+
+func (s *StructContext) AllTerm() []ITermContext {
+	children := s.GetChildren()
+	len := 0
+	for _, ctx := range children {
+		if _, ok := ctx.(ITermContext); ok {
+			len++
+		}
+	}
+
+	tst := make([]ITermContext, len)
+	i := 0
+	for _, ctx := range children {
+		if t, ok := ctx.(ITermContext); ok {
+			tst[i] = t.(ITermContext)
+			i++
+		}
+	}
+
+	return tst
+}
+
+func (s *StructContext) Term(i int) ITermContext {
+	var t antlr.RuleContext
+	j := 0
+	for _, ctx := range s.GetChildren() {
+		if _, ok := ctx.(ITermContext); ok {
+			if j == i {
+				t = ctx.(antlr.RuleContext)
+				break
+			}
+			j++
+		}
+	}
+
+	if t == nil {
+		return nil
+	}
+
+	return t.(ITermContext)
+}
+
+func (s *StructContext) AllCOMMA() []antlr.TerminalNode {
+	return s.GetTokens(MangleParserCOMMA)
+}
+
+func (s *StructContext) COMMA(i int) antlr.TerminalNode {
+	return s.GetToken(MangleParserCOMMA, i)
+}
+
+func (s *StructContext) EnterRule(listener antlr.ParseTreeListener) {
+	if listenerT, ok := listener.(MangleListener); ok {
+		listenerT.EnterStruct(s)
+	}
+}
+
+func (s *StructContext) ExitRule(listener antlr.ParseTreeListener) {
+	if listenerT, ok := listener.(MangleListener); ok {
+		listenerT.ExitStruct(s)
+	}
+}
+
+func (s *StructContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MangleVisitor:
+		return t.VisitStruct(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MangleParser) Term() (localctx ITermContext) {
 	this := p
 	_ = this
@@ -2998,11 +3205,10 @@ func (p *MangleParser) Term() (localctx ITermContext) {
 		}
 	}()
 
-	p.SetState(184)
+	p.SetState(218)
 	p.GetErrorHandler().Sync(p)
-
-	switch p.GetTokenStream().LA(1) {
-	case MangleParserVARIABLE:
+	switch p.GetInterpreter().AdaptivePredict(p.GetTokenStream(), 27, p.GetParserRuleContext()) {
+	case 1:
 		localctx = NewVarContext(p, localctx)
 		p.EnterOuterAlt(localctx, 1)
 		{
@@ -3010,7 +3216,7 @@ func (p *MangleParser) Term() (localctx ITermContext) {
 			p.Match(MangleParserVARIABLE)
 		}
 
-	case MangleParserCONSTANT:
+	case 2:
 		localctx = NewConstContext(p, localctx)
 		p.EnterOuterAlt(localctx, 2)
 		{
@@ -3018,7 +3224,7 @@ func (p *MangleParser) Term() (localctx ITermContext) {
 			p.Match(MangleParserCONSTANT)
 		}
 
-	case MangleParserNUMBER:
+	case 3:
 		localctx = NewNumContext(p, localctx)
 		p.EnterOuterAlt(localctx, 3)
 		{
@@ -3026,7 +3232,7 @@ func (p *MangleParser) Term() (localctx ITermContext) {
 			p.Match(MangleParserNUMBER)
 		}
 
-	case MangleParserSTRING:
+	case 4:
 		localctx = NewStrContext(p, localctx)
 		p.EnterOuterAlt(localctx, 4)
 		{
@@ -3034,7 +3240,7 @@ func (p *MangleParser) Term() (localctx ITermContext) {
 			p.Match(MangleParserSTRING)
 		}
 
-	case MangleParserNAME:
+	case 5:
 		localctx = NewApplContext(p, localctx)
 		p.EnterOuterAlt(localctx, 5)
 		{
@@ -3049,7 +3255,7 @@ func (p *MangleParser) Term() (localctx ITermContext) {
 		p.GetErrorHandler().Sync(p)
 		_la = p.GetTokenStream().LA(1)
 
-		if (int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&1040203776) != 0 {
+		if (int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&8321630240) != 0 {
 			{
 				p.SetState(161)
 				p.Term()
@@ -3079,7 +3285,7 @@ func (p *MangleParser) Term() (localctx ITermContext) {
 			p.Match(MangleParserRPAREN)
 		}
 
-	case MangleParserLBRACKET:
+	case 6:
 		localctx = NewListContext(p, localctx)
 		p.EnterOuterAlt(localctx, 6)
 		{
@@ -3090,7 +3296,7 @@ func (p *MangleParser) Term() (localctx ITermContext) {
 		p.GetErrorHandler().Sync(p)
 		_la = p.GetTokenStream().LA(1)
 
-		if (int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&1040203776) != 0 {
+		if (int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&8321630240) != 0 {
 			{
 				p.SetState(173)
 				p.Term()
@@ -3120,8 +3326,120 @@ func (p *MangleParser) Term() (localctx ITermContext) {
 			p.Match(MangleParserRBRACKET)
 		}
 
-	default:
-		panic(antlr.NewNoViableAltException(p, nil, nil, nil, nil, nil))
+	case 7:
+		localctx = NewMapContext(p, localctx)
+		p.EnterOuterAlt(localctx, 7)
+		{
+			p.SetState(184)
+			p.Match(MangleParserLBRACKET)
+		}
+		p.SetState(198)
+		p.GetErrorHandler().Sync(p)
+		_la = p.GetTokenStream().LA(1)
+
+		if (int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&8321630240) != 0 {
+			{
+				p.SetState(185)
+				p.Term()
+			}
+			{
+				p.SetState(186)
+				p.Match(MangleParserT__3)
+			}
+			{
+				p.SetState(187)
+				p.Term()
+			}
+			p.SetState(195)
+			p.GetErrorHandler().Sync(p)
+			_la = p.GetTokenStream().LA(1)
+
+			for _la == MangleParserCOMMA {
+				{
+					p.SetState(188)
+					p.Match(MangleParserCOMMA)
+				}
+				{
+					p.SetState(189)
+					p.Term()
+				}
+				{
+					p.SetState(190)
+					p.Match(MangleParserT__3)
+				}
+				{
+					p.SetState(191)
+					p.Term()
+				}
+
+				p.SetState(197)
+				p.GetErrorHandler().Sync(p)
+				_la = p.GetTokenStream().LA(1)
+			}
+
+		}
+		{
+			p.SetState(200)
+			p.Match(MangleParserRBRACKET)
+		}
+
+	case 8:
+		localctx = NewStructContext(p, localctx)
+		p.EnterOuterAlt(localctx, 8)
+		{
+			p.SetState(201)
+			p.Match(MangleParserT__4)
+		}
+		p.SetState(215)
+		p.GetErrorHandler().Sync(p)
+		_la = p.GetTokenStream().LA(1)
+
+		if (int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&8321630240) != 0 {
+			{
+				p.SetState(202)
+				p.Term()
+			}
+			{
+				p.SetState(203)
+				p.Match(MangleParserT__3)
+			}
+			{
+				p.SetState(204)
+				p.Term()
+			}
+			p.SetState(212)
+			p.GetErrorHandler().Sync(p)
+			_la = p.GetTokenStream().LA(1)
+
+			for _la == MangleParserCOMMA {
+				{
+					p.SetState(205)
+					p.Match(MangleParserCOMMA)
+				}
+				{
+					p.SetState(206)
+					p.Term()
+				}
+				{
+					p.SetState(207)
+					p.Match(MangleParserT__3)
+				}
+				{
+					p.SetState(208)
+					p.Term()
+				}
+
+				p.SetState(214)
+				p.GetErrorHandler().Sync(p)
+				_la = p.GetTokenStream().LA(1)
+			}
+
+		}
+		{
+			p.SetState(217)
+			p.Match(MangleParserT__5)
+		}
+
 	}
 
 	return localctx
@@ -3236,7 +3554,7 @@ func (p *MangleParser) Atom() (localctx IAtomContext) {
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(186)
+		p.SetState(220)
 		p.Term()
 	}
 
@@ -3394,40 +3712,40 @@ func (p *MangleParser) Atoms() (localctx IAtomsContext) {
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(188)
+		p.SetState(222)
 		p.Match(MangleParserLBRACKET)
 	}
-	p.SetState(197)
+	p.SetState(231)
 	p.GetErrorHandler().Sync(p)
 	_la = p.GetTokenStream().LA(1)
 
-	if (int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&1040203776) != 0 {
+	if (int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&8321630240) != 0 {
 		{
-			p.SetState(189)
+			p.SetState(223)
 			p.Atom()
 		}
-		p.SetState(194)
+		p.SetState(228)
 		p.GetErrorHandler().Sync(p)
 		_la = p.GetTokenStream().LA(1)
 
 		for _la == MangleParserCOMMA {
 			{
-				p.SetState(190)
+				p.SetState(224)
 				p.Match(MangleParserCOMMA)
 			}
 			{
-				p.SetState(191)
+				p.SetState(225)
 				p.Atom()
 			}
 
-			p.SetState(196)
+			p.SetState(230)
 			p.GetErrorHandler().Sync(p)
 			_la = p.GetTokenStream().LA(1)
 		}
 
 	}
 	{
-		p.SetState(199)
+		p.SetState(233)
 		p.Match(MangleParserRBRACKET)
 	}
 

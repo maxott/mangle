@@ -83,6 +83,14 @@ func (v *BaseMangleVisitor) VisitList(ctx *ListContext) interface{} {
 	return v.VisitChildren(ctx)
 }
 
+func (v *BaseMangleVisitor) VisitMap(ctx *MapContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
+func (v *BaseMangleVisitor) VisitStruct(ctx *StructContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
 func (v *BaseMangleVisitor) VisitAtom(ctx *AtomContext) interface{} {
 	return v.VisitChildren(ctx)
 }

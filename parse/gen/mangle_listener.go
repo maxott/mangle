@@ -64,6 +64,12 @@ type MangleListener interface {
 	// EnterList is called when entering the List production.
 	EnterList(c *ListContext)
 
+	// EnterMap is called when entering the Map production.
+	EnterMap(c *MapContext)
+
+	// EnterStruct is called when entering the Struct production.
+	EnterStruct(c *StructContext)
+
 	// EnterAtom is called when entering the atom production.
 	EnterAtom(c *AtomContext)
 
@@ -126,6 +132,12 @@ type MangleListener interface {
 
 	// ExitList is called when exiting the List production.
 	ExitList(c *ListContext)
+
+	// ExitMap is called when exiting the Map production.
+	ExitMap(c *MapContext)
+
+	// ExitStruct is called when exiting the Struct production.
+	ExitStruct(c *StructContext)
 
 	// ExitAtom is called when exiting the atom production.
 	ExitAtom(c *AtomContext)

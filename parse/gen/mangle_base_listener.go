@@ -134,6 +134,18 @@ func (s *BaseMangleListener) EnterList(ctx *ListContext) {}
 // ExitList is called when production List is exited.
 func (s *BaseMangleListener) ExitList(ctx *ListContext) {}
 
+// EnterMap is called when production Map is entered.
+func (s *BaseMangleListener) EnterMap(ctx *MapContext) {}
+
+// ExitMap is called when production Map is exited.
+func (s *BaseMangleListener) ExitMap(ctx *MapContext) {}
+
+// EnterStruct is called when production Struct is entered.
+func (s *BaseMangleListener) EnterStruct(ctx *StructContext) {}
+
+// ExitStruct is called when production Struct is exited.
+func (s *BaseMangleListener) ExitStruct(ctx *StructContext) {}
+
 // EnterAtom is called when production atom is entered.
 func (s *BaseMangleListener) EnterAtom(ctx *AtomContext) {}
 
