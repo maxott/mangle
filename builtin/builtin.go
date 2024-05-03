@@ -26,6 +26,12 @@ import (
 	"github.com/google/mangle/unionfind"
 )
 
+type Builtin struct {
+	Arity  int
+	Mode   ast.Mode
+	Decide func(atom ast.Atom, subst *unionfind.UnionFind) (bool, []*unionfind.UnionFind, error)
+}
+
 var (
 	// Predicates has all built-in predicates.
 	Predicates = map[ast.PredicateSym]ast.Mode{
@@ -45,6 +51,8 @@ var (
 		symbols.MatchField:     {ast.ArgModeInput, ast.ArgModeInput, ast.ArgModeOutput},
 		symbols.MatchEntry:     {ast.ArgModeInput, ast.ArgModeInput, ast.ArgModeOutput},
 	}
+
+	extensions = map[string]Builtin{}
 
 	varX         = ast.Variable{"X"}
 	varY         = ast.Variable{"Y"}
@@ -107,6 +115,12 @@ func init() {
 	for fn, tpe := range ReducerFunctions {
 		Functions[fn] = tpe
 	}
+}
+
+func RegisterExtension(name string, extension Builtin) {
+	extensions[name] = extension
+	p := ast.PredicateSym{Symbol: name, Arity: extension.Arity}
+	Predicates[p] = extension.Mode
 }
 
 // GetBuiltinFunctionType returns the type of a builtin function.
@@ -265,7 +279,11 @@ func Decide(atom ast.Atom, subst *unionfind.UnionFind) (bool, []*unionfind.Union
 			return false, nil, err
 		}
 		return abs(nums[0]-nums[1]) < nums[2], []*unionfind.UnionFind{subst}, nil
+
 	default:
+		if ex, ok := extensions[atom.Predicate.Symbol]; ok {
+			return ex.Decide(atom, subst)
+		}
 		return false, nil, fmt.Errorf("not a builtin predicate: %s", atom.Predicate.Symbol)
 	}
 }

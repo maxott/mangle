@@ -16,6 +16,7 @@ package builtin
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -661,6 +662,59 @@ func TestExpand(t *testing.T) {
 					t.Errorf("Decide(%v,%v)=...%s... want %v", test.atom, test.subst, gotSubst, test.wantSubst)
 				}
 			}
+		}
+	}
+}
+
+func TestExtension(t *testing.T) {
+	tests := []struct {
+		scrutinee ast.Constant
+		pattern   ast.Constant
+		want      bool
+	}{
+		{ast.String("foo/bar"), ast.String("bar"), true},
+		{ast.String("foo"), ast.String("foo"), true},
+		{ast.String("foo"), ast.String("dfoo"), false},
+		{ast.String("foo/bar"), ast.String("foo"), true},
+		{ast.String("foo/bar"), ast.String("oo"), true},
+		{ast.String("foo/bar"), ast.String("ob"), false},
+		{ast.String("foo"), ast.String(""), true},
+	}
+
+	f := func(pattern ast.Atom, subst *unionfind.UnionFind) (bool, []*unionfind.UnionFind, error) {
+		evaluatedArg, err := functional.EvalExpr(pattern.Args[0], subst)
+		if err != nil {
+			return false, nil, err
+		}
+
+		if len(pattern.Args) != 2 {
+			return false, nil, fmt.Errorf("wrong number of arguments for built-in predicate ':ext:test': %v", pattern.Args)
+		}
+		pat, ok := pattern.Args[1].(ast.Constant)
+		if !ok || pat.Type != ast.StringType {
+			return false, nil, fmt.Errorf("2nd arguments must be string constant for ':ext:test': %v", pattern)
+		}
+		str, ok := evaluatedArg.(ast.Constant)
+		if !ok || str.Type != ast.StringType {
+			return false, nil, nil
+		}
+		return strings.Contains(str.Symbol, pat.Symbol), []*unionfind.UnionFind{subst}, nil
+	}
+
+	RegisterExtension(":ext:test", Builtin{
+		Arity:  2,
+		Mode:   []ast.ArgMode{ast.ArgModeInput, ast.ArgModeInput},
+		Decide: f,
+	})
+
+	for _, test := range tests {
+		atom := ast.NewAtom(":ext:test", test.scrutinee, test.pattern)
+		got, _, err := Decide(atom, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if got != test.want {
+			t.Errorf("TestExtension(%v): got %v want %v", atom, got, test.want)
 		}
 	}
 }
