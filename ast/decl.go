@@ -142,7 +142,7 @@ func (m Mode) Check(goal Atom, boundVars map[Variable]bool) error {
 		return boundVars == nil || !boundVars[v]
 	}
 	if len(m) != len(goal.Args) {
-		return fmt.Errorf("number of arguments, %v, does not match the mode %v", goal.Args, m)
+		return fmt.Errorf("for goal %q number of arguments, %v, does not match the mode %v", goal.Predicate, goal.Args, m)
 	}
 	for i, argMode := range m {
 		arg := goal.Args[i]
