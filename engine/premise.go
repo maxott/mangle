@@ -42,7 +42,7 @@ func premiseAtom(a ast.Atom, lookupFn func(p ast.Atom, cb func(ast.Atom) error) 
 		return solutions, nil
 	}
 	// Not a built-in predicate. Call lookupFn.
-	lookupFn(p, func(fact ast.Atom) error {
+	err = lookupFn(p, func(fact ast.Atom) error {
 		// TODO: This could be made a lot more efficient by using a persistent
 		// data structure for composing the unionfind substitutions.
 		if newSubst, err := unionfind.UnifyTermsExtend(p.Args, fact.Args, subst); err == nil {
@@ -50,6 +50,9 @@ func premiseAtom(a ast.Atom, lookupFn func(p ast.Atom, cb func(ast.Atom) error) 
 		}
 		return nil
 	})
+	if err != nil {
+		return nil, err
+	}
 	return solutions, nil
 
 }
