@@ -22,10 +22,13 @@ import (
 	"strconv"
 	"strings"
 
-	"go.uber.org/multierr"
 	"github.com/google/mangle/ast"
 	"github.com/google/mangle/symbols"
+	"go.uber.org/multierr"
 )
+
+type FunctionFn func(args []ast.Constant, subst ast.Subst) (ast.Constant, error)
+type ReduceFn func(reduceFn ast.ApplyFn, rows []ast.ConstSubstList) (ast.Constant, error)
 
 var (
 	// ErrDivisionByZero indicates a division by zero runtime error.
@@ -33,6 +36,9 @@ var (
 
 	// errFound is used for exiting a loop
 	errFound = errors.New("found")
+
+	ExtraFunctions       = map[string]FunctionFn{}
+	ExtraReduceFunctions = map[string]ReduceFn{}
 )
 
 // EvalExpr evaluates any apply-expression in b and applies subst.
@@ -416,6 +422,10 @@ func EvalApplyFn(applyFn ast.ApplyFn, subst ast.Subst) (ast.Constant, error) {
 		return ast.Constant{}, fmt.Errorf("key does not exist: %v", lookupField)
 
 	default:
+		if ex, ok := ExtraFunctions[applyFn.Function.Symbol]; ok {
+			return ex(evaluatedArgs, subst)
+		}
+
 		return EvalNumericApplyFn(applyFn, subst)
 	}
 }
@@ -724,6 +734,10 @@ func EvalReduceFn(reduceFn ast.ApplyFn, rows []ast.ConstSubstList) (ast.Constant
 			return cbNil()
 		})
 	default:
+		if ex, ok := ExtraReduceFunctions[reduceFn.Function.Symbol]; ok {
+			return ex(reduceFn, rows)
+		}
+
 		return ast.Constant{}, fmt.Errorf("unknown reducer %v", reduceFn.Function)
 	}
 }

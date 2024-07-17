@@ -16,6 +16,7 @@ package builtin
 
 import (
 	"fmt"
+	"math"
 	"strings"
 	"testing"
 
@@ -25,6 +26,7 @@ import (
 	"github.com/google/mangle/parse"
 	"github.com/google/mangle/symbols"
 	"github.com/google/mangle/unionfind"
+	"go.uber.org/multierr"
 )
 
 var emptySubst = unionfind.New()
@@ -701,7 +703,7 @@ func TestExtension(t *testing.T) {
 		return strings.Contains(str.Symbol, pat.Symbol), []*unionfind.UnionFind{subst}, nil
 	}
 
-	RegisterExtension(":ext:test", Builtin{
+	RegisterBuiltin(":ext:test", Builtin{
 		Arity:  2,
 		Mode:   []ast.ArgMode{ast.ArgModeInput, ast.ArgModeInput},
 		Decide: f,
@@ -717,4 +719,106 @@ func TestExtension(t *testing.T) {
 			t.Errorf("TestExtension(%v): got %v want %v", atom, got, test.want)
 		}
 	}
+}
+
+// This is actually a 'functional' test, but the registration function
+// is here and can't be imported in 'functional' without a import cycle
+
+func TestReducerExtension(t *testing.T) {
+	tests := []struct {
+		rows    [][]ast.Constant
+		wantAvg float64
+	}{
+		{
+			rows: [][]ast.Constant{
+				{ast.Float64(1)},
+				{ast.Float64(2)},
+				{ast.Float64(5)},
+			},
+			wantAvg: 8.0 / 3,
+		},
+		{
+			rows:    nil,
+			wantAvg: 0,
+		},
+	}
+	fnName := "fn:float:avg"
+	RegisterReducerFunction(fnName, 1,
+		symbols.NewFunType(ast.Float64Bound /* <= */, symbols.NewListType(ast.Float64Bound)),
+		averageFn,
+		averageReducerFn,
+	)
+
+	for _, test := range tests {
+		var rows []ast.ConstSubstList
+		for _, row := range test.rows {
+			rows = append(rows, makeConstSubstList([]ast.Variable{ast.Variable{"X"}}, row))
+		}
+
+		gotAvgC, err := functional.EvalReduceFn(ast.ApplyFn{ast.FunctionSym{fnName, 1}, []ast.BaseTerm{ast.Variable{"X"}}}, rows)
+		if err != nil {
+			t.Fatalf("EvalReduceFn(Avg, %v) failed with %v", rows, err)
+		}
+		gotAvg, _ := gotAvgC.Float64Value()
+		if math.Abs(test.wantAvg-gotAvg) > 0.01 {
+			t.Errorf("EvalReduceFn(Avg, %v)=%v want %v", rows, gotAvg, test.wantAvg)
+		}
+	}
+}
+
+func averageFn(args []ast.Constant, subst ast.Subst) (ast.Constant, error) {
+	if l := len(args); l != 1 {
+		return ast.Constant{}, fmt.Errorf("expected 1 list argument, got %d argument(s)", l)
+	}
+	list := args[0]
+	return evalFloatAvg(func(cbNext func(ast.Constant) error, cbNil func() error) error {
+		if err1, err2 := list.ListValues(cbNext, cbNil); err1 != nil || err2 != nil {
+			return multierr.Combine(err1, err2)
+		}
+		return nil
+	})
+}
+
+func evalFloatAvg(iter func(func(ast.Constant) error, func() error) error) (ast.Constant, error) {
+	var sum float64
+	var cnt float64
+	if err := iter(func(c ast.Constant) error {
+		num, err := c.Float64Value()
+		if err != nil {
+			return err
+		}
+		sum += num
+		cnt += 1
+		return nil
+	}, func() error { return nil }); err != nil {
+		return ast.Constant{}, err
+	}
+	avg := 0.0
+	if cnt > 0 {
+		avg = sum / cnt
+	}
+	return ast.Float64(avg), nil
+}
+
+func averageReducerFn(reduceFn ast.ApplyFn, rows []ast.ConstSubstList) (ast.Constant, error) {
+	v := reduceFn.Args[0].(ast.Variable)
+	return evalFloatAvg(func(cbNext func(ast.Constant) error, cbNil func() error) error {
+		for _, subst := range rows {
+			if num, ok := subst.Get(v).(ast.Constant); ok {
+				if err := cbNext(num); err != nil {
+					return err
+				}
+			}
+		}
+		return cbNil()
+	})
+}
+
+// duplicated from functional_test
+func makeConstSubstList(vars []ast.Variable, columns []ast.Constant) ast.ConstSubstList {
+	var subst ast.ConstSubstList
+	for i, v := range vars {
+		subst = subst.Extend(v, columns[i])
+	}
+	return subst
 }

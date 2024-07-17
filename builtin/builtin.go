@@ -52,7 +52,7 @@ var (
 		symbols.MatchEntry:     {ast.ArgModeInput, ast.ArgModeInput, ast.ArgModeOutput},
 	}
 
-	extensions = map[string]Builtin{}
+	extraBuiltins = map[string]Builtin{}
 
 	varX         = ast.Variable{"X"}
 	varY         = ast.Variable{"Y"}
@@ -117,10 +117,35 @@ func init() {
 	}
 }
 
-func RegisterExtension(name string, extension Builtin) {
-	extensions[name] = extension
-	p := ast.PredicateSym{Symbol: name, Arity: extension.Arity}
-	Predicates[p] = extension.Mode
+func RegisterBuiltin(name string, builtin Builtin) {
+	extraBuiltins[name] = builtin
+	p := ast.PredicateSym{Symbol: name, Arity: builtin.Arity}
+	Predicates[p] = builtin.Mode
+}
+
+// register a new custom function
+func RegisterFunction(
+	name string,
+	arity int,
+	fnType ast.ApplyFn,
+	fn functional.FunctionFn,
+) {
+	functional.ExtraFunctions[name] = fn
+	p := ast.FunctionSym{Symbol: name, Arity: arity}
+	Functions[p] = fnType
+}
+
+func RegisterReducerFunction(
+	name string,
+	arity int,
+	fnType ast.ApplyFn,
+	fn functional.FunctionFn,
+	reduceFn functional.ReduceFn,
+) {
+	RegisterFunction(name, arity, fnType, fn)
+	p := ast.FunctionSym{Symbol: name, Arity: arity}
+	ReducerFunctions[p] = fnType
+	functional.ExtraReduceFunctions[name] = reduceFn
 }
 
 // GetBuiltinFunctionType returns the type of a builtin function.
@@ -281,7 +306,7 @@ func Decide(atom ast.Atom, subst *unionfind.UnionFind) (bool, []*unionfind.Union
 		return abs(nums[0]-nums[1]) < nums[2], []*unionfind.UnionFind{subst}, nil
 
 	default:
-		if ex, ok := extensions[atom.Predicate.Symbol]; ok {
+		if ex, ok := extraBuiltins[atom.Predicate.Symbol]; ok {
 			return ex.Decide(atom, subst)
 		}
 		return false, nil, fmt.Errorf("not a builtin predicate: %s", atom.Predicate.Symbol)
